@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created with JFLAP 7.1.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="q0">
+			<x>771.0</x>
+			<y>333.0</y>
+			<initial/>
+		</state>
+		<state id="1" name="q1">
+			<x>1128.0</x>
+			<y>444.0</y>
+		</state>
+		<state id="2" name="q2">
+			<x>1532.0</x>
+			<y>334.0</y>
+			<final/>
+		</state>
+		<state id="3" name="q3">
+			<x>955.0</x>
+			<y>487.0</y>
+		</state>
+		<state id="4" name="q4">
+			<x>860.0</x>
+			<y>537.0</y>
+		</state>
+		<state id="5" name="q5">
+			<x>1264.0</x>
+			<y>535.0</y>
+		</state>
+		<state id="6" name="q6">
+			<x>830.0</x>
+			<y>626.0</y>
+		</state>
+		<state id="7" name="q7">
+			<x>786.0</x>
+			<y>799.0</y>
+		</state>
+		<state id="8" name="q8">
+			<x>983.0</x>
+			<y>634.0</y>
+		</state>
+		<state id="9" name="q9">
+			<x>1354.0</x>
+			<y>631.0</y>
+		</state>
+		<state id="10" name="q10">
+			<x>1102.0</x>
+			<y>805.0</y>
+		</state>
+		<state id="11" name="q11">
+			<x>1351.0</x>
+			<y>770.0</y>
+		</state>
+		<state id="12" name="q12">
+			<x>850.0</x>
+			<y>233.0</y>
+		</state>
+		<state id="13" name="q13">
+			<x>977.0</x>
+			<y>197.0</y>
+		</state>
+		<state id="14" name="q14">
+			<x>900.0</x>
+			<y>290.0</y>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read/>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>11</to>
+			<read>.</read>
+		</transition>
+		<transition>
+			<from>8</from>
+			<to>9</to>
+			<read>[a-z] or [0-9]</read>
+		</transition>
+		<transition>
+			<from>10</from>
+			<to>10</to>
+			<read>[0-9]</read>
+		</transition>
+		<transition>
+			<from>11</from>
+			<to>11</to>
+			<read>[0-9]</read>
+		</transition>
+		<transition>
+			<from>14</from>
+			<to>0</to>
+			<read>/</read>
+		</transition>
+		<transition>
+			<from>13</from>
+			<to>14</to>
+			<read>*</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>4</to>
+			<read>'</read>
+		</transition>
+		<transition>
+			<from>10</from>
+			<to>2</to>
+			<read>not[0-9]</read>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>10</to>
+			<read>[0-9]</read>
+		</transition>
+		<transition>
+			<from>10</from>
+			<to>11</to>
+			<read>.</read>
+		</transition>
+		<transition>
+			<from>12</from>
+			<to>13</to>
+			<read>*</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>3</to>
+			<read>. or _</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>10</to>
+			<read>[0-9]</read>
+		</transition>
+		<transition>
+			<from>11</from>
+			<to>2</to>
+			<read>not[0-9]</read>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>1</to>
+			<read>[a-z] or . or _ or [0-9]</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>7</to>
+			<read>-</read>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>8</to>
+			<read>x</read>
+		</transition>
+		<transition>
+			<from>9</from>
+			<to>2</to>
+			<read>[a-z] or [0-9]</read>
+		</transition>
+		<transition>
+			<from>4</from>
+			<to>5</to>
+			<read>[a-z]</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>3</to>
+			<read>. or _</read>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>2</to>
+			<read>not ( [a-z] or . or _ or [0-9])</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>[a-z]</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>2</to>
+			<controlx>1128</controlx>
+			<controly>771</controly>
+			<read>not[0-9]</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>12</to>
+			<read>/</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>1</to>
+			<read>[a-z] or [0-9]</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>2</to>
+			<read> ( or ) or ; or , or + or &lt; or &gt; or = or * or / or % or { or } or [ or ]</read>
+		</transition>
+		<transition>
+			<from>5</from>
+			<to>2</to>
+			<read>'</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>6</to>
+			<read>[0-9]</read>
+		</transition>
+		<transition>
+			<from>13</from>
+			<to>13</to>
+			<read>not(EOF or *)</read>
+		</transition>
+		<note>
+			<text>CONSTANTES</text>
+			<x>625.0</x>
+			<y>592.0</y>
+		</note>
+		<note>
+			<text>IDs</text>
+			<x>1034.0</x>
+			<y>326.0</y>
+		</note>
+		<note>
+			<text>Comentário</text>
+			<x>771.0</x>
+			<y>234.0</y>
+		</note>
+		<note>
+			<text>simbolos reservados ( duvida &lt;=, &gt;=, &lt;&gt;, / e * )</text>
+			<x>969.0</x>
+			<y>274.0</y>
+		</note>
+		<note>
+			<text>hexadecimal
+</text>
+			<x>801.0</x>
+			<y>526.0</y>
+		</note>
+		<note>
+			<text>char</text>
+			<x>1028.0</x>
+			<y>471.0</y>
+		</note>
+		<note>
+			<text>int ou real</text>
+			<x>990.0</x>
+			<y>668.0</y>
+		</note>
+	</automaton>
+</structure>

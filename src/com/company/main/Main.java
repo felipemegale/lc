@@ -1,42 +1,19 @@
 package com.company.main;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
 
 public class Main {
 
     public static void main(String[] args) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String data;
-        SymbolTable st = new SymbolTable();
-        LexicalAnalyzer la = new LexicalAnalyzer();
-
-        System.out.println("Type STAHP to stahp");
-
-        try {
-
-            do {
-                data = reader.readLine();
-
-                Byte addr = st.searchLexeme(data);
-
-                if (addr != null)
-                    System.out.println(addr + " found!");
-                else
-                    System.out.println(addr + " found");
-
-                if (la.isLexemeValid(data)) {
-                    System.out.println("lexeme is valid");
-                    System.out.println(st.insertToken(data));
-                }
-                else
-                    System.out.println("lexeme is NOT valid");
-
-                st.printTable();
-            } while (!data.equals("STAHP"));
-
-        } catch (java.io.IOException ioe) {
-            ioe.printStackTrace();
+        //TODO: Configurar IDEA para utilizar parâmetros.
+        String sourceFileName = args[0];
+        String outputFileName = args[1];
+        //TODO: Validar nome de Arquivos.
+        File sourceFile = new File(sourceFileName);
+        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer();
+        boolean result = lexicalAnalyzer.lexicalAnalysis(sourceFile);
+        if(!result){
+            System.out.println("Compilation Failed!");
         }
     }
 }
