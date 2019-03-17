@@ -35,8 +35,8 @@ public class LexicalAnalyzer {
         Byte pointer, token;
 
         try {
-            BufferedReader src = new BufferedReader(new FileReader(sourceCode));
-            while(currentState != finalState){ //TODO, Ele está lendo até o estado final e parando de ler o arquivo. (FIX)
+            BufferedReader src = new BufferedReader(new FileReader(sourceCode)); //TODO Essa leitura precisa ser de forma que possamos continuar a partir de onde terminamos anteriormente
+            while(currentState != finalState){
                 if((status = src.read()) != -1){
                     c = ((char) status) + ""; //TODO, Está como String porq os lexemas já testam
                     log("Char Lido: " + c);
