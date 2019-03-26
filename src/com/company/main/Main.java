@@ -15,7 +15,10 @@ public class Main {
         // quando voltar e não for EOF deve ser chamado de novo para continuar a leitura do arquivo para
         // o proximo teste léxico, quando voltar, provavelmente deve precisar chamar o analisador sintatico
         // logo em seguida.
-        boolean result = lexicalAnalyzer.lexicalAnalysis(sourceFile);
+        boolean result;
+        while((result = lexicalAnalyzer.lexicalAnalysis(sourceFile))){
+            System.out.println(lexicalAnalyzer.getRead());
+        }
         if(!result){
             System.out.println("Compilation Failed!");
         }
