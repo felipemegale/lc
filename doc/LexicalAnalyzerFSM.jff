@@ -1,289 +1,308 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created with JFLAP 7.1.--><structure>
-	<type>fa</type>
-	<automaton>
-		<!--The list of states.-->
-		<state id="0" name="0">
-			<x>233.0</x>
-			<y>328.0</y>
-			<initial/>
-		</state>
-		<state id="1" name="1">
-			<x>590.0</x>
-			<y>439.0</y>
-		</state>
-		<state id="2" name="2">
-			<x>994.0</x>
-			<y>329.0</y>
-			<final/>
-		</state>
-		<state id="3" name="3">
-			<x>417.0</x>
-			<y>482.0</y>
-		</state>
-		<state id="4" name="4">
-			<x>322.0</x>
-			<y>532.0</y>
-		</state>
-		<state id="5" name="5">
-			<x>500.0</x>
-			<y>544.0</y>
-		</state>
-		<state id="6" name="6">
-			<x>260.0</x>
-			<y>729.0</y>
-		</state>
-		<state id="8" name="7">
-			<x>626.0</x>
-			<y>663.0</y>
-		</state>
-		<state id="9" name="8">
-			<x>791.0</x>
-			<y>535.0</y>
-		</state>
-		<state id="10" name="9">
-			<x>730.0</x>
-			<y>778.0</y>
-		</state>
-		<state id="12" name="10">
-			<x>578.0</x>
-			<y>109.0</y>
-		</state>
-		<state id="13" name="11">
-			<x>391.0</x>
-			<y>102.0</y>
-		</state>
-		<state id="14" name="12">
-			<x>294.0</x>
-			<y>171.0</y>
-		</state>
-		<state id="15" name="13">
-			<x>543.0</x>
-			<y>188.0</y>
-		</state>
-		<state id="16" name="14">
-			<x>443.0</x>
-			<y>276.0</y>
-		</state>
-		<!--The list of transitions.-->
-		<transition>
-			<from>0</from>
-			<to>0</to>
-			<read/>
-		</transition>
-		<transition>
-			<from>16</from>
-			<to>2</to>
-			<read>=</read>
-		</transition>
-		<transition>
-			<from>16</from>
-			<to>2</to>
-			<read>&gt;</read>
-		</transition>
-		<transition>
-			<from>10</from>
-			<to>10</to>
-			<read>[0-9]</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>12</to>
-			<read>/</read>
-		</transition>
-		<transition>
-			<from>1</from>
-			<to>2</to>
-			<read>not ( [a-z] or . or _ or [0-9])</read>
-		</transition>
-		<transition>
-			<from>10</from>
-			<to>2</to>
-			<read>not[0-9]</read>
-		</transition>
-		<transition>
-			<from>12</from>
-			<to>2</to>
-			<read>not( * ) </read>
-		</transition>
-		<transition>
-			<from>15</from>
-			<to>2</to>
-			<read>not(=)</read>
-		</transition>
-		<transition>
-			<from>8</from>
-			<to>9</to>
-			<read>[a-z] or [0-9]</read>
-		</transition>
-		<transition>
-			<from>14</from>
-			<to>13</to>
-			<read>not(/)</read>
-		</transition>
-		<transition>
-			<from>14</from>
-			<to>0</to>
-			<read>/</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>10</to>
-			<read>[0-9]</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>16</to>
-			<read>&lt;</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>1</to>
-			<read>[a-z]</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>8</to>
-			<read>x</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>3</to>
-			<read>. or _</read>
-		</transition>
-		<transition>
-			<from>9</from>
-			<to>2</to>
-			<read>[a-z] or [0-9]</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>2</to>
-			<read>not([0-9] | x )</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>4</to>
-			<read>'</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>3</to>
-			<read>. or _</read>
-		</transition>
-		<transition>
-			<from>5</from>
-			<to>2</to>
-			<read>'</read>
-		</transition>
-		<transition>
-			<from>12</from>
-			<to>13</to>
-			<read>*</read>
-		</transition>
-		<transition>
-			<from>1</from>
-			<to>1</to>
-			<read>[a-z] or . or _ or [0-9]</read>
-		</transition>
-		<transition>
-			<from>15</from>
-			<to>2</to>
-			<read>=</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>2</to>
-			<read>( or ) or ; or , or + or = or % or { or } or [ or ]</read>
-		</transition>
-		<transition>
-			<from>16</from>
-			<to>2</to>
-			<read>not(= | &gt;)</read>
-		</transition>
-		<transition>
-			<from>13</from>
-			<to>14</to>
-			<read>*</read>
-		</transition>
-		<transition>
-			<from>4</from>
-			<to>5</to>
-			<read>[a-z] or [0-9]</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>6</to>
-			<read>[0-9]</read>
-		</transition>
-		<transition>
-			<from>0</from>
-			<to>15</to>
-			<read>&gt;</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>1</to>
-			<read>[a-z] or [0-9]</read>
-		</transition>
-		<transition>
-			<from>13</from>
-			<to>13</to>
-			<read>not(EOF or *)</read>
-		</transition>
-		<note>
-			<text>CONSTANTES</text>
-			<x>188.0</x>
-			<y>308.0</y>
-		</note>
-		<note>
-			<text>IDs</text>
-			<x>480.0</x>
-			<y>310.0</y>
-		</note>
-		<note>
-			<text>Comentário</text>
-			<x>306.0</x>
-			<y>136.0</y>
-		</note>
-		<note>
-			<text>simbolos reservados</text>
-			<x>403.0</x>
-			<y>254.0</y>
-		</note>
-		<note>
-			<text>hexadecimal</text>
-			<x>489.0</x>
-			<y>524.0</y>
-		</note>
-		<note>
-			<text>char</text>
-			<x>385.0</x>
-			<y>445.0</y>
-		</note>
-		<note>
-			<text>int</text>
-			<x>600.0</x>
-			<y>638.0</y>
-		</note>
-		<note>
-			<text>devolve c</text>
-			<x>784.0</x>
-			<y>264.0</y>
-		</note>
-		<note>
-			<text>devolve c</text>
-			<x>771.0</x>
-			<y>399.0</y>
-		</note>
-		<note>
-			<text>ação semantica e devolve c</text>
-			<x>633.0</x>
-			<y>289.0</y>
-		</note>
-		<note>
-			<text>devolve c</text>
-			<x>602.0</x>
-			<y>405.0</y>
-		</note>
-	</automaton>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created with JFLAP 7.1.--><structure>&#13;
+	<type>fa</type>&#13;
+	<automaton>&#13;
+		<!--The list of states.-->&#13;
+		<state id="0" name="0">&#13;
+			<x>233.0</x>&#13;
+			<y>328.0</y>&#13;
+			<initial/>&#13;
+		</state>&#13;
+		<state id="1" name="1">&#13;
+			<x>537.0</x>&#13;
+			<y>484.0</y>&#13;
+		</state>&#13;
+		<state id="2" name="2">&#13;
+			<x>994.0</x>&#13;
+			<y>329.0</y>&#13;
+			<final/>&#13;
+		</state>&#13;
+		<state id="3" name="3">&#13;
+			<x>429.0</x>&#13;
+			<y>525.0</y>&#13;
+		</state>&#13;
+		<state id="4" name="4">&#13;
+			<x>322.0</x>&#13;
+			<y>532.0</y>&#13;
+		</state>&#13;
+		<state id="5" name="5">&#13;
+			<x>465.0</x>&#13;
+			<y>583.0</y>&#13;
+		</state>&#13;
+		<state id="6" name="6">&#13;
+			<x>331.0</x>&#13;
+			<y>700.0</y>&#13;
+		</state>&#13;
+		<state id="7" name="15">&#13;
+			<x>578.0</x>&#13;
+			<y>396.0</y>&#13;
+		</state>&#13;
+		<state id="8" name="7">&#13;
+			<x>626.0</x>&#13;
+			<y>663.0</y>&#13;
+		</state>&#13;
+		<state id="9" name="8">&#13;
+			<x>791.0</x>&#13;
+			<y>535.0</y>&#13;
+		</state>&#13;
+		<state id="10" name="9">&#13;
+			<x>730.0</x>&#13;
+			<y>778.0</y>&#13;
+		</state>&#13;
+		<state id="12" name="10">&#13;
+			<x>578.0</x>&#13;
+			<y>109.0</y>&#13;
+		</state>&#13;
+		<state id="13" name="11">&#13;
+			<x>391.0</x>&#13;
+			<y>102.0</y>&#13;
+		</state>&#13;
+		<state id="14" name="12">&#13;
+			<x>294.0</x>&#13;
+			<y>171.0</y>&#13;
+		</state>&#13;
+		<state id="15" name="13">&#13;
+			<x>543.0</x>&#13;
+			<y>188.0</y>&#13;
+		</state>&#13;
+		<state id="16" name="14">&#13;
+			<x>443.0</x>&#13;
+			<y>276.0</y>&#13;
+		</state>&#13;
+		<!--The list of transitions.-->&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>0</to>&#13;
+			<read/>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>16</from>&#13;
+			<to>2</to>&#13;
+			<read>=</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>9</from>&#13;
+			<to>2</to>&#13;
+			<read>[a-z] or [0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>16</from>&#13;
+			<to>2</to>&#13;
+			<read>&gt;</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>10</from>&#13;
+			<to>10</to>&#13;
+			<read>[0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>13</from>&#13;
+			<to>14</to>&#13;
+			<read>*</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>15</to>&#13;
+			<read>&gt;</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>1</to>&#13;
+			<read>[a-z]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>15</from>&#13;
+			<to>2</to>&#13;
+			<read>not(=)</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>5</from>&#13;
+			<to>2</to>&#13;
+			<read>'</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>3</from>&#13;
+			<to>1</to>&#13;
+			<read>[a-z] or [0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>12</to>&#13;
+			<read>/</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>8</from>&#13;
+			<to>9</to>&#13;
+			<read>[a-z] or [0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>7</to>&#13;
+			<read>"</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>4</to>&#13;
+			<read>'</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>10</from>&#13;
+			<to>2</to>&#13;
+			<read>not[0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>2</to>&#13;
+			<read>( or ) or ; or , or + or = or % or { or } or [ or ]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>6</from>&#13;
+			<to>8</to>&#13;
+			<read>x</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>12</from>&#13;
+			<to>13</to>&#13;
+			<read>*</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>3</from>&#13;
+			<to>3</to>&#13;
+			<read>. or _</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>6</from>&#13;
+			<to>10</to>&#13;
+			<read>[0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>14</from>&#13;
+			<to>13</to>&#13;
+			<read>not(/)</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>1</from>&#13;
+			<to>1</to>&#13;
+			<read>[a-z] or . or _ or [0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>12</from>&#13;
+			<to>2</to>&#13;
+			<read>not( * ) </read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>7</from>&#13;
+			<to>2</to>&#13;
+			<read>"</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>7</from>&#13;
+			<to>7</to>&#13;
+			<read>not (")</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>15</from>&#13;
+			<to>2</to>&#13;
+			<read>=</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>1</from>&#13;
+			<to>2</to>&#13;
+			<read>not ( [a-z] or . or _ or [0-9])</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>6</to>&#13;
+			<read>[0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>16</from>&#13;
+			<to>2</to>&#13;
+			<read>not(= | &gt;)</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>14</from>&#13;
+			<to>0</to>&#13;
+			<read>/</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>4</from>&#13;
+			<to>5</to>&#13;
+			<read>[a-z] or [0-9]</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>3</to>&#13;
+			<read>. or _</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>0</from>&#13;
+			<to>16</to>&#13;
+			<read>&lt;</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>6</from>&#13;
+			<to>2</to>&#13;
+			<read>not([0-9] | x )</read>&#13;
+		</transition>&#13;
+		<transition>&#13;
+			<from>13</from>&#13;
+			<to>13</to>&#13;
+			<read>not(EOF or *)</read>&#13;
+		</transition>&#13;
+		<note>&#13;
+			<text>CONSTANTES</text>&#13;
+			<x>239.0</x>&#13;
+			<y>353.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>IDs</text>&#13;
+			<x>480.0</x>&#13;
+			<y>310.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>Comentário</text>&#13;
+			<x>306.0</x>&#13;
+			<y>136.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>simbolos reservados</text>&#13;
+			<x>403.0</x>&#13;
+			<y>254.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>hexadecimal</text>&#13;
+			<x>433.0</x>&#13;
+			<y>571.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>char</text>&#13;
+			<x>385.0</x>&#13;
+			<y>445.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>int</text>&#13;
+			<x>600.0</x>&#13;
+			<y>638.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>devolve c</text>&#13;
+			<x>784.0</x>&#13;
+			<y>264.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>devolve c</text>&#13;
+			<x>870.0</x>&#13;
+			<y>359.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>ação semantica e devolve c</text>&#13;
+			<x>633.0</x>&#13;
+			<y>289.0</y>&#13;
+		</note>&#13;
+		<note>&#13;
+			<text>devolve c</text>&#13;
+			<x>637.0</x>&#13;
+			<y>422.0</y>&#13;
+		</note>&#13;
+	</automaton>&#13;
 </structure>

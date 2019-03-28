@@ -5,7 +5,7 @@ Var integer n[3], max;
 /* Programa Principal */
 
   For I=0 to 2 do {
-    write(“Digite um numero: “);
+    write("Digite um numero: ");
     readln(n[i]);
   }
   If n[0] > n[1] then {

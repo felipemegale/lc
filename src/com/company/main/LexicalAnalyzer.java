@@ -13,7 +13,7 @@ public class LexicalAnalyzer {
 
 //    private static final String VARIABLE_PATTERN = "\\b((([a-zA-Z])+)((([a-zA-Z])|\\.|_|[0-9])*))|(((\\.|_)+)(([a-zA-Z])|[0-9])((([a-zA-Z])|\\.|_|[0-9])*))";
 //    private static final String HEXADECIMAL_PATTERN = "0x([A-F]|[0-9]){2}\\b";
-    private static final String AVAILABLE_CHARACTERS = "[a-zA-z0-9\\s_\\.,;&\\*:\\(\\)\\[\\]{}+\\-\"\\'/%\\^@!?><=\"\\n\\r\\t]";
+    private static final String AVAILABLE_CHARACTERS = "[a-zA-z0-9\\s_\\.,;\\\"&\\*:\\(\\)\\[\\]{}+\\-\"\\'/%\\^@!?><=\"\\n\\r\\t]";
     private SymbolTable symbolTable;
     private boolean logEnabled;
 
@@ -102,6 +102,9 @@ public class LexicalAnalyzer {
                         }else if(c.matches("/")){
                             lexeme += c;
                             currentState = 10;
+                        } else if(c.matches("\\\"")){
+                            lexeme += c;
+                            currentState = 15;
                         } else if(!c.matches("[\\n\\r\\t\\s]")){
                             return false;
                         }
@@ -230,6 +233,16 @@ public class LexicalAnalyzer {
                             currentState = 2;
                             token = semanticAction(lexeme);
                             read--;
+                        }
+                        break;
+                    case 15:
+                        if(c.matches("\\\"")){
+                            lexeme += c;
+                            currentState = 2;
+                            token = semanticAction("const");
+                        }else{
+                            lexeme += c;
+                            currentState = 15;
                         }
                         break;
                     default: return false;
