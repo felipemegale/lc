@@ -131,7 +131,10 @@ public class LexicalAnalyzer {
                         }
                         break;
                     case 4:
-                        if(c.matches("[a-z]|[0-9]")){
+                        if(c.matches("'")){
+                            lexeme += c;
+                            currentState = 2;
+                        }else if(c.matches(AVAILABLE_CHARACTERS)) {
                             lexeme += c;
                             currentState = 5;
                         }else{
@@ -240,9 +243,11 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 2;
                             token = semanticAction("const");
-                        }else{
+                        }else if(c.matches(AVAILABLE_CHARACTERS)){
                             lexeme += c;
                             currentState = 15;
+                        }else{
+                            return false;
                         }
                         break;
                     default: return false;
