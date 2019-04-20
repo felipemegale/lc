@@ -16,20 +16,22 @@ public class LexicalAnalyzer {
     private static final String AVAILABLE_CHARACTERS = "[a-zA-z0-9\\s_\\.,;\\\"&\\*:\\(\\)\\[\\]{}+\\-\"\\'/%\\^@!?><=\"\\n\\r\\t]";
     private SymbolTable symbolTable;
     private boolean logEnabled;
+    private File sourceCode;
 
-    public long getRead() {
-        return read;
-    }
+
 
     private long read;
     private SyntacticAnalyzer syntacticAnalyzer;
 
-    public LexicalAnalyzer() {
+    public LexicalAnalyzer(File sourceCode) {
         this.symbolTable = new SymbolTable();
+        this.sourceCode = sourceCode;
         this.logEnabled = true;
         this.read = 0;
-        this.syntacticAnalyzer = new SyntacticAnalyzer();
+        this.syntacticAnalyzer = new SyntacticAnalyzer(this);
     }
+
+
 
     /**
      * A Quick check if the read character belongs to the language alphabet
@@ -43,10 +45,10 @@ public class LexicalAnalyzer {
 
     /**
      * Implementation of a Lexical Analyzer using a Finite State Machine to verify a language syntax.
-     * @param sourceCode File containing the source code
      * @return a boolean result (err = false, ok = true)
      */
-    public boolean lexicalAnalysis(File sourceCode){
+
+    public String lexicalAnalysis(){
         int initialState = 0;
         int finalState = 2;
         int currentState = initialState;
@@ -56,7 +58,7 @@ public class LexicalAnalyzer {
         Byte token = 0;
 
         try {
-            BufferedReader src = new BufferedReader(new FileReader(sourceCode));
+            BufferedReader src = new BufferedReader(new FileReader(this.sourceCode));
             src.skip(this.read);
             System.out.println("Skipping " + this.read + " chars");
             while(currentState != finalState){
@@ -67,11 +69,11 @@ public class LexicalAnalyzer {
                     log("Char Lido: " + status);
                     if(!isLexemeValid(c)){
                         log("Invalid character read");
-                        return false; //Return to main function to a compile failed message be called.
+                        return "ERROR"; //Return to main function to a compile failed message be called.
                     }
                 }else{
                     log("EOF");
-                    return false;
+                    return "EOF";
                 }
                 // Implementation of a Finite State Machine using switch case tests
                 //to implement the lexical analyzer.
@@ -106,7 +108,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 15;
                         } else if(!c.matches("[\\n\\r\\t\\s]")){
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 1:
@@ -127,7 +129,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 1;
                         }else {
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 4:
@@ -138,7 +140,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 5;
                         }else{
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 5:
@@ -147,7 +149,7 @@ public class LexicalAnalyzer {
                             currentState = 2;
                             token = semanticAction("const");
                         }else{
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 6:
@@ -170,7 +172,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 8;
                         }else{
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 8:
@@ -179,7 +181,7 @@ public class LexicalAnalyzer {
                             currentState = 2;
                             token = semanticAction("const");
                         }else{
-                            return false;
+                            return "ERROR";
                         }
                         break;
                     case 9:
@@ -247,17 +249,17 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 15;
                         }else{
-                            return false;
+                            return "ERROR";
                         }
                         break;
-                    default: return false;
+                    default: return "ERROR";
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         log("Token Encontrado: " + token);
-        return true;
+        return "";
     }
 
 
@@ -287,5 +289,13 @@ public class LexicalAnalyzer {
         if(this.logEnabled){
             System.out.println(new Date().toString() + " >> " + msg);
         }
+    }
+
+    public long getRead() {
+        return read;
+    }
+
+    public SyntacticAnalyzer getSyntacticAnalyzer() {
+        return syntacticAnalyzer;
     }
 }

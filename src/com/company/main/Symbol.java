@@ -1,7 +1,8 @@
 package com.company.main;
 
 public class Symbol {
-    private String token;
+
+    private Byte token;
     private String lexeme;
     private String _class;
     private String type;
@@ -9,15 +10,15 @@ public class Symbol {
 
     public Symbol(){}
 
-    public Symbol(String token, String lexeme, String _class, String type, int size) {
+    public Symbol(Byte token, String lexeme) {
         this.token = token;
         this.lexeme = lexeme;
-        this._class = _class;
-        this.type = type;
-        this.size = size;
+        this._class = "";
+        this.type = "";
+        this.size = 0;
     }
 
-    public String getToken() {
+    public Byte getToken() {
         return token;
     }
 
@@ -37,7 +38,7 @@ public class Symbol {
         return size;
     }
 
-    public void setToken(String token) {
+    public void setToken(Byte token) {
         this.token = token;
     }
 
@@ -55,5 +56,13 @@ public class Symbol {
 
     public void setSize(int size) {
         this.size = size;
+    }
+
+    @Override
+    public String toString() {
+        return "Symbol{" +
+                "token=" + token +
+                ", lexeme='" + lexeme + '\'' +
+                '}';
     }
 }

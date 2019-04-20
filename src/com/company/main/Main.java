@@ -10,17 +10,11 @@ public class Main {
         String outputFileName = args[1];
         //TODO: Validar nome de Arquivos.
         File sourceFile = new File(sourceFileName);
-        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer();
-        //TODO: Esta chamada tem que ser feita recebendo como retorno o endereço do ultimo char lido, assim
-        // quando voltar e não for EOF deve ser chamado de novo para continuar a leitura do arquivo para
-        // o proximo teste léxico, quando voltar, provavelmente deve precisar chamar o analisador sintatico
-        // logo em seguida.
-        boolean result;
-        while((result = lexicalAnalyzer.lexicalAnalysis(sourceFile))){
-            System.out.println(lexicalAnalyzer.getRead());
-        }
-        if(!result){
-            System.out.println("Compilation Failed!");
-        }
+        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
+        SyntacticAnalyzer syntacticAnalyzer = lexicalAnalyzer.getSyntacticAnalyzer();
+        syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis();
+        syntacticAnalyzer.procedure_S();
+        if(!syntacticAnalyzer.token.equals("EOF"))
+            System.out.println("Erro!");
     }
 }
