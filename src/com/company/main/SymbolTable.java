@@ -6,6 +6,7 @@ import java.util.Map;
 public class SymbolTable {
     public static HashMap<String, Symbol> symbolTable;
     public static byte lastByte;
+    public static int idCount;
 
     public final byte CONST = 0x00000000;
     public final byte VAR = 0x00000001;
@@ -43,6 +44,7 @@ public class SymbolTable {
     public final byte OPEN_SBRA = 0x00000033;
     public final byte CLOSE_SBRA = 0x00000034;
     public final byte DO = 0x00000035;
+    public final byte EOF = 0x00000036;
 
     public SymbolTable() {
         symbolTable = new HashMap<>();
@@ -57,7 +59,7 @@ public class SymbolTable {
         symbolTable.put("end", new Symbol(END, "end"));
         symbolTable.put("or", new Symbol(OR, "or"));
         symbolTable.put("not", new Symbol(NOT, "not"));
-        symbolTable.put("equals", new Symbol(EQUALS, "equals"));
+        symbolTable.put("=", new Symbol(EQUALS, "="));
         symbolTable.put("to", new Symbol(TO, "to"));
         symbolTable.put("(", new Symbol(OPEN_PAR, "("));
         symbolTable.put(")", new Symbol(CLOSE_PAR, ")"));
@@ -83,20 +85,18 @@ public class SymbolTable {
         symbolTable.put("[", new Symbol(OPEN_SBRA, "["));
         symbolTable.put("]", new Symbol(CLOSE_SBRA, "]"));
         symbolTable.put("do", new Symbol(DO, "do"));
-
-        lastByte = DO;
+        symbolTable.put("EOF", new Symbol(EOF, "EOF"));
+        lastByte = EOF;
     }
 
-    public Byte searchLexeme(String searchObject) {
-        Byte number = null;
-        number = symbolTable.get(searchObject).getToken();
-        return number;
+    public Symbol searchLexeme(String searchObject) {
+        return symbolTable.get(searchObject);
     }
 
-    public Byte insertToken(String sValue) {
-        symbolTable.putIfAbsent(sValue, new Symbol(++lastByte, sValue));
-
-        return lastByte;
+    public Symbol insertToken(String sValue) {
+        Symbol s = new Symbol("id", sValue, ++lastByte);
+        symbolTable.putIfAbsent(sValue, s);
+        return s;
     }
 
     public void printTable() {

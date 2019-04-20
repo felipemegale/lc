@@ -2,23 +2,33 @@ package com.company.main;
 
 public class Symbol {
 
-    private Byte token;
+    private String token;
     private String lexeme;
     private String _class;
     private String type;
+    private Byte _addr;
     private int size;
 
     public Symbol(){}
 
-    public Symbol(Byte token, String lexeme) {
+    public Symbol(String token, String lexeme, Byte _addr) {
         this.token = token;
         this.lexeme = lexeme;
         this._class = "";
         this.type = "";
         this.size = 0;
+        this._addr = _addr;
     }
 
-    public Byte getToken() {
+    public Symbol(Byte _addr, String lexeme) {
+        this.token = this.lexeme = lexeme;
+        this._class = "";
+        this.type = "";
+        this.size = 0;
+        this._addr = _addr;
+    }
+
+    public String getToken() {
         return token;
     }
 
@@ -38,9 +48,13 @@ public class Symbol {
         return size;
     }
 
-    public void setToken(Byte token) {
+    public void setToken(String token) {
         this.token = token;
     }
+
+    public Byte getAddr(){ return this._addr; }
+
+    public void setAddr(Byte _addr){this._addr = _addr;}
 
     public void setLexeme(String lexeme) {
         this.lexeme = lexeme;
