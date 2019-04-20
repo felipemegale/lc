@@ -16,7 +16,7 @@ public class SyntacticAnalyzer {
 
     // S -> { Declarações }* { Comando }* [EOF(?)]
     public void procedure_S(){
-        while(token.equals("var") || token.equals("const")){
+        while((token.equals("var") || token.equals("const")) && !errors.checkError()){ //TODO Ideia para parar de pesquisar..
             procedure_Statemants();
         }
         //token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
@@ -135,7 +135,10 @@ public class SyntacticAnalyzer {
         matchToken("do");
         if(token.equals("{")){
             matchToken("{");
-            procedure_Command();
+            while(token.equals("id") || token.equals("for") || token.equals("if") ||
+                    token.equals(";") || token.equals("readln") || token.equals("write") || token.equals("writeln")){
+                procedure_Command();
+            }
             matchToken("}");
         }else{
             procedure_Command();
@@ -148,7 +151,10 @@ public class SyntacticAnalyzer {
         matchToken("then");
         if(token.equals("{")){
             matchToken("{");
-            procedure_Command();
+            while(token.equals("id") || token.equals("for") || token.equals("if") ||
+                    token.equals(";") || token.equals("readln") || token.equals("write") || token.equals("writeln")){
+                procedure_Command();
+            }
             matchToken("}");
         }else{
             procedure_Command();
@@ -157,7 +163,10 @@ public class SyntacticAnalyzer {
             matchToken("else");
             if(token.equals("{")){
                 matchToken("{");
-                procedure_Command();
+                while(token.equals("id") || token.equals("for") || token.equals("if") ||
+                        token.equals(";") || token.equals("readln") || token.equals("write") || token.equals("writeln")){
+                    procedure_Command();
+                }
                 matchToken("}");
             }else{
                 procedure_Command();

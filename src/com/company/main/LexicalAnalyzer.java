@@ -27,7 +27,7 @@ public class LexicalAnalyzer {
         this.sourceCode = sourceCode;
         this.logEnabled = true;
         this.read = 0;
-        this.linesRead = 0;
+        this.linesRead = 1;
         this.errors = errors;
     }
 
