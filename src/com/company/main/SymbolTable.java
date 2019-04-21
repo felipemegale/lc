@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SymbolTable {
-    public static HashMap<Byte, String> symbolTable;
-    public static HashMap<String, Byte> reverseSymbolTable; // reverse table is kept to facilitate search by value
+    public static HashMap<String, Symbol> symbolTable;
     public static byte lastByte;
+    public static int idCount;
 
     public final byte CONST = 0x00000000;
     public final byte VAR = 0x00000001;
@@ -44,106 +44,63 @@ public class SymbolTable {
     public final byte OPEN_SBRA = 0x00000033;
     public final byte CLOSE_SBRA = 0x00000034;
     public final byte DO = 0x00000035;
+    public final byte EOF = 0x00000036;
 
     public SymbolTable() {
         symbolTable = new HashMap<>();
-        reverseSymbolTable = new HashMap<>();
 
-        symbolTable.put(CONST, "const");
-        symbolTable.put(VAR, "var");
-        symbolTable.put(INTEGER, "integer");
-        symbolTable.put(CHAR, "char");
-        symbolTable.put(FOR, "for");
-        symbolTable.put(IF, "if");
-        symbolTable.put(ELSE, "else");
-        symbolTable.put(END, "end");
-        symbolTable.put(OR, "or");
-        symbolTable.put(NOT, "not");
-        symbolTable.put(EQUALS, "equals");
-        symbolTable.put(TO, "to");
-        symbolTable.put(OPEN_PAR, "(");
-        symbolTable.put(CLOSE_PAR, ")");
-        symbolTable.put(LESS_THAN, "<");
-        symbolTable.put(GREATER_THAN, ">");
-        symbolTable.put(DIFFERENT, "<>");
-        symbolTable.put(GREATER_EQUALS, ">=");
-        symbolTable.put(LESS_EQUALS, "<=");
-        symbolTable.put(COMMA, ",");
-        symbolTable.put(PLUS, "+");
-        symbolTable.put(MINUS, "-");
-        symbolTable.put(TIMES, "*");
-        symbolTable.put(DIVIDED, "/");
-        symbolTable.put(SEMI_COLON, ";");
-        symbolTable.put(OPEN_CBRA, "{");
-        symbolTable.put(CLOSE_CBRA, "}");
-        symbolTable.put(THEN, "then");
-        symbolTable.put(READLN, "readln");
-        symbolTable.put(STEP, "step");
-        symbolTable.put(WRITE, "write");
-        symbolTable.put(WRITELN, "writeln");
-        symbolTable.put(MODULUS, "%");
-        symbolTable.put(OPEN_SBRA, "[");
-        symbolTable.put(CLOSE_SBRA, "]");
-        symbolTable.put(DO, "do");
-
-        reverseSymbolTable.put("const", CONST);
-        reverseSymbolTable.put("var", VAR);
-        reverseSymbolTable.put("integer", INTEGER);
-        reverseSymbolTable.put("char", CHAR);
-        reverseSymbolTable.put("for", FOR);
-        reverseSymbolTable.put("if", IF);
-        reverseSymbolTable.put("else", ELSE);
-        reverseSymbolTable.put("end", END);
-        reverseSymbolTable.put("or", OR);
-        reverseSymbolTable.put("not", NOT);
-        reverseSymbolTable.put("equals", EQUALS);
-        reverseSymbolTable.put("to", TO);
-        reverseSymbolTable.put("(", OPEN_PAR);
-        reverseSymbolTable.put(")", CLOSE_PAR);
-        reverseSymbolTable.put("<", LESS_THAN);
-        reverseSymbolTable.put(">", GREATER_THAN);
-        reverseSymbolTable.put("<>", DIFFERENT);
-        reverseSymbolTable.put(">=", GREATER_EQUALS);
-        reverseSymbolTable.put("<=", LESS_EQUALS);
-        reverseSymbolTable.put(",", COMMA);
-        reverseSymbolTable.put("+", PLUS);
-        reverseSymbolTable.put("-", MINUS);
-        reverseSymbolTable.put("*", TIMES);
-        reverseSymbolTable.put("/", DIVIDED);
-        reverseSymbolTable.put(";", SEMI_COLON);
-        reverseSymbolTable.put("{", OPEN_CBRA);
-        reverseSymbolTable.put("}", CLOSE_CBRA);
-        reverseSymbolTable.put("then", THEN);
-        reverseSymbolTable.put("readln", READLN);
-        reverseSymbolTable.put("step", STEP);
-        reverseSymbolTable.put("write", WRITE);
-        reverseSymbolTable.put("writeln", WRITELN);
-        reverseSymbolTable.put("%", MODULUS);
-        reverseSymbolTable.put("[", OPEN_SBRA);
-        reverseSymbolTable.put("]", CLOSE_SBRA);
-        reverseSymbolTable.put("do", DO);
-
-        lastByte = DO;
+        symbolTable.put("const", new Symbol(CONST, "const"));
+        symbolTable.put("var", new Symbol(VAR, "var"));
+        symbolTable.put("integer", new Symbol(INTEGER, "integer"));
+        symbolTable.put("char", new Symbol(CHAR, "char"));
+        symbolTable.put("for", new Symbol(FOR, "for"));
+        symbolTable.put("if", new Symbol(IF, "if"));
+        symbolTable.put("else", new Symbol(ELSE, "else"));
+        symbolTable.put("end", new Symbol(END, "end"));
+        symbolTable.put("or", new Symbol(OR, "or"));
+        symbolTable.put("not", new Symbol(NOT, "not"));
+        symbolTable.put("=", new Symbol(EQUALS, "="));
+        symbolTable.put("to", new Symbol(TO, "to"));
+        symbolTable.put("(", new Symbol(OPEN_PAR, "("));
+        symbolTable.put(")", new Symbol(CLOSE_PAR, ")"));
+        symbolTable.put("<", new Symbol(LESS_THAN, "<"));
+        symbolTable.put(">", new Symbol(GREATER_THAN, ">"));
+        symbolTable.put("<>", new Symbol(DIFFERENT, "<>"));
+        symbolTable.put(">=", new Symbol(GREATER_EQUALS, ">="));
+        symbolTable.put("<=", new Symbol(LESS_EQUALS, "<="));
+        symbolTable.put(",", new Symbol(COMMA, ","));
+        symbolTable.put("+", new Symbol(PLUS, "+"));
+        symbolTable.put("-", new Symbol(MINUS, "-"));
+        symbolTable.put("*", new Symbol(TIMES, "*"));
+        symbolTable.put("/", new Symbol(DIVIDED, "/"));
+        symbolTable.put(";", new Symbol(SEMI_COLON, ";"));
+        symbolTable.put("{", new Symbol(OPEN_CBRA, "{"));
+        symbolTable.put("}", new Symbol(CLOSE_CBRA, "}"));
+        symbolTable.put("then", new Symbol(THEN, "then"));
+        symbolTable.put("readln", new Symbol(READLN, "readln"));
+        symbolTable.put("step", new Symbol(STEP, "step"));
+        symbolTable.put("write", new Symbol(WRITE, "write"));
+        symbolTable.put("writeln", new Symbol(WRITELN, "writeln"));
+        symbolTable.put("%", new Symbol(MODULUS, "%"));
+        symbolTable.put("[", new Symbol(OPEN_SBRA, "["));
+        symbolTable.put("]", new Symbol(CLOSE_SBRA, "]"));
+        symbolTable.put("do", new Symbol(DO, "do"));
+        symbolTable.put("EOF", new Symbol(EOF, "EOF"));
+        lastByte = EOF;
     }
 
-    public Byte searchLexeme(String searchObject) {
-        Byte number = null;
-
-        if (symbolTable.containsValue(searchObject))
-            number = reverseSymbolTable.get(searchObject);
-
-        return number;
+    public Symbol searchLexeme(String searchObject) {
+        return symbolTable.get(searchObject);
     }
 
-    public Byte insertToken(String sValue) {
-        symbolTable.putIfAbsent(++lastByte, sValue);
-        reverseSymbolTable.putIfAbsent(sValue, lastByte);
-
-        return lastByte;
+    public Symbol insertToken(String sValue) {
+        Symbol s = new Symbol("id", sValue, ++lastByte);
+        symbolTable.putIfAbsent(sValue, s);
+        return s;
     }
 
     public void printTable() {
-        for (Map.Entry<Byte, String> entry : symbolTable.entrySet()) {
+        for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
             System.out.println("Chave: " + entry.getKey() + " || Valor: " + entry.getValue());
         }
     }

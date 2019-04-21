@@ -16,20 +16,21 @@ public class LexicalAnalyzer {
     private static final String AVAILABLE_CHARACTERS = "[a-zA-z0-9\\s_\\.,;\\\"&\\*:\\(\\)\\[\\]{}+\\-\"\\'/%\\^@!?><=\"\\n\\r\\t]";
     private SymbolTable symbolTable;
     private boolean logEnabled;
-
-    public long getRead() {
-        return read;
-    }
+    private File sourceCode;
+    private Error errors;
 
     private long read;
-    private SyntacticAnalyzer syntacticAnalyzer;
+    private int linesRead;
 
-    public LexicalAnalyzer() {
+    public LexicalAnalyzer(File sourceCode) {
         this.symbolTable = new SymbolTable();
-        this.logEnabled = true;
+        this.sourceCode = sourceCode;
+        this.logEnabled = false;
         this.read = 0;
-        this.syntacticAnalyzer = new SyntacticAnalyzer();
+        this.linesRead = 1;
     }
+
+
 
     /**
      * A Quick check if the read character belongs to the language alphabet
@@ -43,35 +44,36 @@ public class LexicalAnalyzer {
 
     /**
      * Implementation of a Lexical Analyzer using a Finite State Machine to verify a language syntax.
-     * @param sourceCode File containing the source code
      * @return a boolean result (err = false, ok = true)
      */
-    public boolean lexicalAnalysis(File sourceCode){
+
+    public Symbol lexicalAnalysis(){
         int initialState = 0;
         int finalState = 2;
         int currentState = initialState;
         int status;
         String c;
         String lexeme = "";
-        Byte token = 0;
+        Symbol token = null;
 
         try {
-            BufferedReader src = new BufferedReader(new FileReader(sourceCode));
+            BufferedReader src = new BufferedReader(new FileReader(this.sourceCode));
             src.skip(this.read);
-            System.out.println("Skipping " + this.read + " chars");
             while(currentState != finalState){
                 if((status = src.read()) != -1){
                     c = (((char) status) + "").toLowerCase();
                     read++;
                     log("Char Lido: " + c.toString());
-                    log("Char Lido: " + status);
+//                    log("Char Lido: " + status);
                     if(!isLexemeValid(c)){
-                        log("Invalid character read");
-                        return false; //Return to main function to a compile failed message be called.
+                        throw new Error(this.linesRead+ ":caractere invalido.");
                     }
                 }else{
-                    log("EOF");
-                    return false;
+                    if(currentState != 0){
+                        throw new Error(this.linesRead+ ":fim de arquivo nao esperado.");
+                    }else{
+                        return semanticAction("EOF");
+                    }
                 }
                 // Implementation of a Finite State Machine using switch case tests
                 //to implement the lexical analyzer.
@@ -87,10 +89,14 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 2;
                             token = semanticAction(lexeme);
-                        }else if(c.matches("[0-9]")){
+                        }else if(c.matches("0")){
                             lexeme += c;
                             currentState = 6;
-                        }else if(c.matches("'")){
+                        }else if(c.matches("[1-9]")){
+                            log("entrei");
+                            lexeme += c;
+                            currentState = 9;
+                        } else if(c.matches("'")){
                             lexeme += c;
                             currentState = 4;
                         }else if(c.matches(">")){
@@ -105,8 +111,10 @@ public class LexicalAnalyzer {
                         } else if(c.matches("\\\"")){
                             lexeme += c;
                             currentState = 15;
-                        } else if(!c.matches("[\\n\\r\\t\\s]")){
-                            return false;
+                        } else if(c.matches("\\n")){
+                            linesRead++;
+                        }else if(!c.matches("[\\r\\t\\s]")){
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + c + "]");
                         }
                         break;
                     case 1:
@@ -126,8 +134,8 @@ public class LexicalAnalyzer {
                         }else if(c.matches("[a-z]|[0-9]")){
                             lexeme += c;
                             currentState = 1;
-                        }else {
-                            return false;
+                        }else{
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 4:
@@ -138,48 +146,49 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 5;
                         }else{
-                            return false;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 5:
                         if(c.matches("'")){
                             lexeme += c;
                             currentState = 2;
-                            token = semanticAction("const");
+                            token = semanticAction("constant");
+                            token.setType("char");
                         }else{
-                            return false;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 6:
                         if(c.matches("x")){
                             lexeme += c;
                             currentState = 7;
-                            log("TIPO = hexadecimal");
                         }else if(c.matches("[0-9]")){
                             lexeme += c;
                             currentState = 9;
-                            log("TIPO = Integer");
                         }else{
                             currentState = 2;
                             read--;
-                            token = semanticAction("const");
+                            token = semanticAction("constant");
+                            token.setType("INTEGER");
                         }
                         break;
                     case 7:
-                        if(c.matches("[a-z]|[0-9]")){
+                        if(c.matches("[0-9]|[a-f]")){
                             lexeme += c;
                             currentState = 8;
                         }else{
-                            return false;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 8:
-                        if(c.matches("[a-z]|[0-9]")){
+                        if(c.matches("[0-9]|[a-f]")){
                             lexeme += c;
                             currentState = 2;
-                            token = semanticAction("const");
+                            token = semanticAction("constant");
+                            token.setType("HEXADECIMAL");
                         }else{
-                            return false;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 9:
@@ -189,7 +198,7 @@ public class LexicalAnalyzer {
                         }else{
                             currentState = 2;
                             read--;
-                            token = semanticAction("const");
+                            token = semanticAction("constant"); //TODO Setar tipo
                         }
                         break;
                     case 10:
@@ -242,22 +251,23 @@ public class LexicalAnalyzer {
                         if(c.matches("\\\"")){
                             lexeme += c;
                             currentState = 2;
-                            token = semanticAction("const");
+                            token = semanticAction("constant"); //TODO Setar Tipos
                         }else if(c.matches(AVAILABLE_CHARACTERS)){
                             lexeme += c;
                             currentState = 15;
                         }else{
-                            return false;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
-                    default: return false;
+                    default: return token;
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        log("Token Encontrado: " + token);
-        return true;
+        if(token != null)
+            log(linesRead + ":Token Lido: " + token.getLexeme());
+        return token;
     }
 
 
@@ -268,15 +278,19 @@ public class LexicalAnalyzer {
      * @param lexeme pattern
      * @return token
      */
-    private Byte semanticAction(String lexeme){
-        Byte tok, pointer;
-        pointer = symbolTable.searchLexeme(lexeme);
-        if(pointer == null){
-            tok = symbolTable.insertToken(lexeme);
+    private Symbol semanticAction(String lexeme){
+        Symbol tok, p;
+        if(lexeme.equals("constant")){
+            p = new Symbol(null, "constant");
         }else{
-            tok = pointer;
+            tok = symbolTable.searchLexeme(lexeme);
+            if(tok == null){
+                p = symbolTable.insertToken(lexeme);
+            }else{
+                p = tok;
+            }
         }
-        return tok;
+        return p;
     }
 
     /**
@@ -285,7 +299,16 @@ public class LexicalAnalyzer {
      */
     public void log(String msg){
         if(this.logEnabled){
-            System.out.println(new Date().toString() + " >> " + msg);
+            System.out.println(new Date().toString() + " >> LEX " + msg);
         }
     }
+
+    public long getRead() {
+        return read;
+    }
+
+    public int getLinesRead(){
+        return this.linesRead;
+    }
+
 }
