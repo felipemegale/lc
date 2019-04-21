@@ -6,17 +6,15 @@ public class SyntacticAnalyzer {
     String token;
 
     LexicalAnalyzer lexicalAnalyzer;
-    Error errors;
     boolean logEnabled;
-    public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer, Error errors){
+    public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer){
         this.lexicalAnalyzer = lexicalAnalyzer;
-        this.errors = errors;
-        logEnabled = true;
+        logEnabled = false;
     }
 
     // S -> { Declarações }* { Comando }* [EOF(?)]
     public void procedure_S(){
-        while((token.equals("var") || token.equals("const")) && !errors.checkError()){ //TODO Ideia para parar de pesquisar..
+        while(token.equals("var") || token.equals("const")){
             procedure_Statemants();
         }
         //token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
@@ -301,11 +299,10 @@ public class SyntacticAnalyzer {
             log("new token: " + this.token);
         } else {
             if(this.token.equals("EOF")){
-                errors.setError(this.lexicalAnalyzer.getLinesRead(), "SYN_EOFNOTEXPECTED");
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":fim de arquivo nao esperado.");
             }else{
-                errors.setError(this.lexicalAnalyzer.getLinesRead(), "SYN_TOKENNOTEXPECTED:" + this.token);
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":token nao esperado [" + (this.token) + "]");
             }
-            this.token = null;
         }
     }
 

@@ -10,9 +10,8 @@ public class LC {
         String outputFileName = args[1];
         //TODO: Validar nome de Arquivos.
         File sourceFile = new File(sourceFileName);
-        Error errors = new Error();
-        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile, errors);
-        SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer, errors);
+        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
+        SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer);
         syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
         syntacticAnalyzer.procedure_S();
         if(!syntacticAnalyzer.token.equals("EOF"))

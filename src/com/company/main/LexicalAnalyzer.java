@@ -22,13 +22,12 @@ public class LexicalAnalyzer {
     private long read;
     private int linesRead;
 
-    public LexicalAnalyzer(File sourceCode, Error errors) {
+    public LexicalAnalyzer(File sourceCode) {
         this.symbolTable = new SymbolTable();
         this.sourceCode = sourceCode;
-        this.logEnabled = true;
+        this.logEnabled = false;
         this.read = 0;
         this.linesRead = 1;
-        this.errors = errors;
     }
 
 
@@ -60,7 +59,6 @@ public class LexicalAnalyzer {
         try {
             BufferedReader src = new BufferedReader(new FileReader(this.sourceCode));
             src.skip(this.read);
-            System.out.println("Skipping " + this.read + " chars");
             while(currentState != finalState){
                 if((status = src.read()) != -1){
                     c = (((char) status) + "").toLowerCase();
@@ -68,13 +66,11 @@ public class LexicalAnalyzer {
                     log("Char Lido: " + c.toString());
 //                    log("Char Lido: " + status);
                     if(!isLexemeValid(c)){
-                        errors.setError(linesRead, "LEX_INVALIDCHAR");
-                        return null; //Return to main function to a compile failed message be called.
+                        throw new Error(this.linesRead+ ":caractere invalido.");
                     }
                 }else{
                     if(currentState != 0){
-                        errors.setError(linesRead, "LEX_EOFNOTEXPECTED");
-                        return null;
+                        throw new Error(this.linesRead+ ":fim de arquivo nao esperado.");
                     }else{
                         return semanticAction("EOF");
                     }
@@ -118,8 +114,7 @@ public class LexicalAnalyzer {
                         } else if(c.matches("\\n")){
                             linesRead++;
                         }else if(!c.matches("[\\r\\t\\s]")){
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + c);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + c + "]");
                         }
                         break;
                     case 1:
@@ -140,8 +135,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 1;
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 4:
@@ -152,8 +146,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 5;
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 5:
@@ -163,8 +156,7 @@ public class LexicalAnalyzer {
                             token = semanticAction("constant");
                             token.setType("char");
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 6:
@@ -186,8 +178,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 8;
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 8:
@@ -197,8 +188,7 @@ public class LexicalAnalyzer {
                             token = semanticAction("constant");
                             token.setType("HEXADECIMAL");
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     case 9:
@@ -266,8 +256,7 @@ public class LexicalAnalyzer {
                             lexeme += c;
                             currentState = 15;
                         }else{
-                            errors.setError(this.linesRead, "LEX_LEXEMENOTFOUND:" + lexeme);
-                            return null;
+                            throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
                         }
                         break;
                     default: return token;
