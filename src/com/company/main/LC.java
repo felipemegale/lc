@@ -14,7 +14,5 @@ public class LC {
         SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer);
         syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
         syntacticAnalyzer.procedure_S();
-        if(!syntacticAnalyzer.token.equals("EOF"))
-            System.out.println("Erro!");
     }
 }
