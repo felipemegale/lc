@@ -1,0 +1,43 @@
+// condicao
+<C1>: cond := false
+<C2>: cond := true
+
+// unicidade
+<U1>: if id.classe != vazio, erro
+<U2>: if id.classe = vazio, erro
+
+// tipo
+<T1>:
+if cond:
+	Lis.tipo = inteiro
+else Lis.tipo = caractere
+
+<T2>:
+if ExpS.tipo != inteiro: erro
+else ValVet.tipo = arranjo(0..ExpS.val-1, t)
+
+<T3>:
+if cond
+	if !isNumero(valor.lex): erro
+	else ValVet.tipo = inteiro
+else
+	if !isNumero(valor.lex): ValVet.tipo = caractere
+	elses ValVet.tipo = inteiro
+
+<T4>:
+se ValVet.tipo = arranjo(i,t) 
+senao
+
+<G>:
+se cond entao
+mov AX,valor.lex
+neg AX
+id.end = NovoEnd
+mov DS:[id.end],AX
+
+/*
+var
+integer a,b,c,d,e;
+char f,g,h,i,j;
+integer vet[];
+*/
