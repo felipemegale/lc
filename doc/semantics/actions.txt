@@ -11,10 +11,11 @@
 if cond:
 	Lis.tipo = inteiro
 else Lis.tipo = caractere
+id.classe = classe-var
 
 <T2>:
 if ExpS.tipo != inteiro: erro
-else ValVet.tipo = arranjo(0..ExpS.val-1, t)
+else ValVet.tipo = arranjo(0..ExpS.val-1, Lis.tipo)
 
 <T3>:
 if cond
@@ -25,8 +26,27 @@ else
 	elses ValVet.tipo = inteiro
 
 <T4>:
-se ValVet.tipo = arranjo(i,t) 
-senao
+if ValVet.tipo = arranjo(i,t):
+	if t != Lis.tipo: erro
+	else:
+		id.tam = i
+		id.tipo = arranjo(i, t)
+else /*eh atribuicao*/
+	id.tam = 0
+	if ValVet.tipo != Lis.tipo:
+		erro
+
+<T5>:
+if cond:
+	if !isNumerico(valor.lex): erro
+	else:
+		id.tipo = inteiro
+else
+	if isNumerico(valor.lex):
+		id.tipo = inteiro
+	else:
+		id.tipo = caractere
+id.classe = classe-const
 
 <G>:
 se cond entao

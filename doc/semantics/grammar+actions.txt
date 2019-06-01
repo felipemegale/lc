@@ -1,15 +1,15 @@
  S -> {Dec}* {Com}* EOF
 
-Dec -> var {Lis}+ | const id<U1> = <C1>[<C2>'-'] valor<G>;
+Dec -> var {Lis}+ | const id<U1> = <C1>[<C2>'-'] valor<T5><G>;
 
-Lis -> <C1>(integer<C2> | char) id<U1><T1> <C1>[<C2>ValVet<T4>] {, id<U1> <C1>[<C2>ValVet]}*;
+Lis -> <C1>(integer<C2> | char) id1<U1><T1> <C1>[<C2>ValVet<T4>] {, id2<U1><T1> <C1>[<C2>ValVet<T4>]}*;
 
 ValVet -> "[" ExpS<T2> "]" | = <C1>[<C2>'-'] valor<T3>
 
 Comando -> Atr | Rep | Tes | ; | Esc | Lei
 
-Atr -> id ["[" Exp1 "]"]<U2> = Exp2;
-s
+Atr -> id <C1>[<C2>"[" Exp1 "]"]<U2> = Exp2;
+
 Rep -> for id<U2> = Exp1 to Exp2 [step num] do
         ("{"{Com}*"}" | Com)
 
