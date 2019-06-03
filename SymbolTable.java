@@ -104,6 +104,11 @@ public class SymbolTable {
         return s;
     }
 
+    public Symbol updateLexicalRegister(Symbol register){
+        symbolTable.put(register.getLexeme(), register);
+        return symbolTable.get(register.getLexeme());
+    }
+
     public void printTable() {
         for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
             System.out.println("Chave: " + entry.getKey() + " || Valor: " + entry.getValue());

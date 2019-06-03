@@ -82,6 +82,10 @@ public class Symbol {
         return "Symbol{" +
                 "token=" + token +
                 ", lexeme='" + lexeme + '\'' +
+                ", _class='" + _class + '\'' +
+                ", type='" + type + '\'' +
+                ", size='" + size + '\'' +
+                ", _addr='" + _addr + '\'' +
                 '}';
     }
 }
