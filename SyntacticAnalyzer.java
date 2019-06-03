@@ -33,9 +33,14 @@ public class SyntacticAnalyzer {
         matchToken("EOF");
     }
 
-    ///////////////////////////////////////////////////// Statemants\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    ///////////////////////////////////////////////////// Statements \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    // Declarações -> "Var""" {ListaId}+ | "const" id "=" [ - ] valor ";"
+    /**
+     * Procedure for Statements grammar
+     * Declarações -> "Var""" {ListaId}+ | "const" id "=" [ - ] valor ";"
+     * With Semantic Actions
+     * Declarações -> "var" {ListaId}+ | "const" "id"<U1> "="<C1>[<C2> "-" ] "valor" <T5><G>";"
+     */
     public void procedure_Statemants() {
         boolean cond = false;
         Symbol id;
@@ -89,7 +94,6 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // 
     /**
      * Procedure for ListIds grammar
      * ListaId -> ("integer" | "char" ) id [ "[" tam "]" | "=" [ - ] valor ] { "," id  [ValVet] }*;
@@ -97,7 +101,6 @@ public class SyntacticAnalyzer {
      * ListaId -> <C1>("integer" <C2>| "char" )  "id"<U1><T1> <C1>[<C2>ValVet <T4>] { "," "id" <U1><T1> <C1>[<C2> ValVet <T4>] }* ;
      * @param listIds
      */
-    
     public void procedure__ListIDs(Symbol listIds) {
         boolean cond = false;
         Symbol id, id1;
@@ -137,6 +140,12 @@ public class SyntacticAnalyzer {
         log("Teste semantico: Var ID " + id);
     }
 
+    /**
+     * Procedure for ValVet grammar
+     * ValVet -> "[" "tam" "]"  |   "=" [ "-" ] "valor"
+     * With Semantic Actions
+     * ValVet -> "[" "tam" <T2> "]"  |   "=" <C1>[<C2> "-" ] "valor"<T3>
+     */
     public void procedure_ValueVector() {
         boolean cond = false;
         if (token.equals("[")) {
@@ -157,7 +166,12 @@ public class SyntacticAnalyzer {
     ////////////////////////////////////////////////////// Commands
     ////////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    // Comando -> Atribuição | Repetição | Teste | ";" | Escrita | Leitura
+    /**
+     * Procedure for Comando grammar
+     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     * With Semantic Actions
+     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     */
     public void procedure_Command() {
         log(">> SYN (Command)");
         if (token.equals("id")) {
@@ -175,7 +189,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // Atribuição -> "id" [ "[" Expressão "]" ] "=" Expressão ";"
+    /**
+     * Procedure for Atribuicao grammar
+     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     * With Semantic Actions
+     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     */
     public void procedure_Assigment() {
         matchToken("id");
         if (token.equals("[")) {
@@ -188,8 +207,12 @@ public class SyntacticAnalyzer {
         matchToken(";");
     }
 
-    // Repetição -> "for" "id" "=" Expressão "to" Expressão [ "step" "num" ] "do" (
-    // "{" Comando "}" | Comando )
+    /**
+     * Procedure for Repeticao grammar
+     * Repetição -> "for" "id" "=" Expressão "to" Expressão [ "step" "num" ] "do" ( "{" Comando "}" | Comando )
+     * With Semantic Actions
+     * Repetição ->  "for" "id"<U2> "=" Expressão <T17> "to" Expressão <C1>[<C2> "step" "num" <T18>] "do"
+     */
     public void procedure_Loop() {
         matchToken("for");
         matchToken("id");
@@ -214,8 +237,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // "if" Expressão "then" ( Comando | "{" Comando "}" ) [ "else" ( Comando | "{"
-    // Comando "}" ) ]
+    /**
+     * Procedure for Teste grammar
+     * Teste -> "if" Expressão "then" ( Comando | "{" { Comando }* "}" ) [ "else" ( Comando |  "{" { Comando }* "}" ) ]
+     * With Semantic Actions
+     * Teste -> "if" Expressão <T16> "then" ( Comando | "{" { Comando }* "}" ) [ "else" ( Comando |  "{" { Comando }* "}" ) ]
+     */
     public void procedure_Condition() {
         matchToken("if");
         procedure_Expression();
@@ -246,6 +273,12 @@ public class SyntacticAnalyzer {
     }
 
     // Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
+    /**
+     * Procedure for Escrita grammar
+     * Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
+     * With Semantic Actions
+     * Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
+     */
     public void procedure_Write() {
         if (token.equals("write")) {
             matchToken("write");
@@ -262,7 +295,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // Leitura -> "readln" "(" "id" ")" ";"
+    /**
+     * Procedure for Leitura grammar
+     * Leitura -> "readln" "(" "id" ")" ";"
+     * With Semantic Actions
+     * Leitura -> "readln" "(" "id"<U2> ")" ";"
+     */
     public void procedure_Read() {
         matchToken("readln");
         matchToken("(");
@@ -273,7 +311,13 @@ public class SyntacticAnalyzer {
 
     //////////////////////////////////////////////////////////// Expressions
     //////////////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    // Expressões -> Expressão { "," Expressões }*
+    
+    /**
+     * Procedure for Expressoes grammar
+     * Expressões -> Expressão { "," Expressões }*
+     * With Semantic Actions
+     * Expressões -> Expressão { "," Expressões }*
+     */
     public void procedure_Expressions() {
         procedure_Expression();
         if (token.equals(",")) {
@@ -282,7 +326,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // Expressão -> ExpressãoS [ ("=" | "<>" | "<" | ">" | "<=" | ">=") ] ExpressãoS
+    /**
+     * Procedure for Expressao grammar
+     * Expressão -> ExpressãoS [ ("=" | "<>" | "<" | ">" | "<=" | ">=") ExpressãoS ] 
+     * With Semantic Actions
+     * Expressão -> ExpressãoS<T9> [ ("=" <C4>| "<>"<C5> | "<" <C6>| ">"<C7> | "<=" <C8>| ">=") ExpressãoS¹ <T15>] 
+     */
     public void procedure_Expression() {
         procedure_Expression_S();
         if (token.equals("=")) {
@@ -306,7 +355,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // ExpressãoS -> ["+" | "-"] Termo {("+" | "-" | "or") Termo}*
+    /**
+     * Procedure for ExpressaoS grammar
+     * ExpressãoS -> ["+" | "-"] Termo {("+" | "-" | "or") Termo}*
+     * With Semantic Actions
+     * ExpressãoS -> [<C9>"+" |<C10> "-"] Termo <T13> {("+"<C9> | "-"<C10> | "or") Termo¹ <T14>}*
+     */
     public void procedure_Expression_S() {
         if (token.equals("+")) {
             matchToken("+");
@@ -326,7 +380,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // Termo -> Fator { ( "*" | "/" | "%" | "and" ) Fator }*
+    /**
+     * Procedure for Termo grammar
+     * Termo -> Fator { ( "*" | "/" | "%" | "and" ) Fator }*
+     * With Semantic Actions
+     * Termo -> Fator<T11> { ( "*"<C11> | "/" <C12>| "%" <C13>| "and" ) Fator¹<T12> }*
+     */
     public void procedure_Term() {
         procedure_Factor();
         while (token.equals("*") || token.equals("/") || token.equals("%") || token.equals("and")) {
@@ -343,8 +402,12 @@ public class SyntacticAnalyzer {
         }
     }
 
-    // Fator -> "not" Fator | "(" Expressão ")" | constante | id [ "[" Expressão "]"
-    // ]
+    /**
+     * Procedure for Fator grammar
+     * Fator -> "not" Fator | "(" Expressão ")" | constante | id [ "[" Expressão "]" ]
+     * With Semantic Actions
+     * Fator -> "not" Fator¹ <T10> | "(" Expressão <T8> ")" | "valor"<T7> | id <U2> <C1>[<C2> "[" Expressão "]" ]<T6>
+     */
     public void procedure_Factor() {
         boolean cond = false;
         if (token.equals("not")) {
