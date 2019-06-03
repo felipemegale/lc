@@ -33,13 +33,13 @@ public class SyntacticAnalyzer {
         matchToken("EOF");
     }
 
-    ///////////////////////////////////////////////////// Statements \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    ///////////////////////////////////////////////////// Statements
+    ///////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
-     * Procedure for Statements grammar
-     * Declarações -> "Var""" {ListaId}+ | "const" id "=" [ - ] valor ";"
-     * With Semantic Actions
-     * Declarações -> "var" {ListaId}+ | "const" "id"<U1> "="<C1>[<C2> "-" ] "valor" <T5><G>";"
+     * Procedure for Statements grammar Declarações -> "Var""" {ListaId}+ | "const"
+     * id "=" [ - ] valor ";" With Semantic Actions Declarações -> "var" {ListaId}+
+     * | "const" "id"<U1> "="<C1>[<C2> "-" ] "valor" <T5><G>";"
      */
     public void procedure_Statemants() {
         boolean cond = false;
@@ -56,7 +56,7 @@ public class SyntacticAnalyzer {
         } else if (token.equals("const")) {
             matchToken("const");
             id = this.lexicalRegister;
-            if ((id.get_Class()).equals("")) {
+            if ((id.get_Class()).equals("")) { // Teste de Unicidade
                 id.set_Class("CLASSE-CONST");
                 id = updateLexicalRegister(id);
             } else {
@@ -90,15 +90,15 @@ public class SyntacticAnalyzer {
                 matchToken("constant");
                 matchToken(";");
             }
-            log("Teste semantico: Id " + id);
         }
     }
 
     /**
-     * Procedure for ListIds grammar
-     * ListaId -> ("integer" | "char" ) id [ "[" tam "]" | "=" [ - ] valor ] { "," id  [ValVet] }*;
-     * With Semantic Actions
-     * ListaId -> <C1>("integer" <C2>| "char" )  "id"<U1><T1> <C1>[<C2>ValVet <T4>] { "," "id" <U1><T1> <C1>[<C2> ValVet <T4>] }* ;
+     * Procedure for ListIds grammar ListaId -> ("integer" | "char" ) id [ValVet] {
+     * "," id [ValVet] }*; With Semantic Actions ListaId -> <C1>("integer" <C2>|
+     * "char" ) "id"<U1><T1> <C1>[<C2>ValVet <T4>] { "," "id" <U1><T1> <C1>[<C2>
+     * ValVet <T4>] }* ;
+     * 
      * @param listIds
      */
     public void procedure__ListIDs(Symbol listIds) {
@@ -113,51 +113,101 @@ public class SyntacticAnalyzer {
         id = this.lexicalRegister;
         if ((id.get_Class()).equals("")) {// <U1> <T1>
             id.set_Class("CLASSE-VAR");
-            if (cond) id.setType("INTEGER"); else id.setType("CHAR");
+            if (cond)
+                id.setType("INTEGER");
+            else
+                id.setType("CHAR");
             id = updateLexicalRegister(id);
         } else {
             throw new Error(
                     this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
         }
         matchToken("id");
-        procedure_ValueVector();
+        Symbol valVec = new Symbol(null, "valVec");
+        procedure_ValueVector(valVec);
+        if (valVec.getSize() > 0) {
+            if (id.getType().equals("INTEGER")) {
+                if (valVec.getSize() > 2000) {
+                    throw new Error(
+                            this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
+                } else {
+                    id.setSize(valVec.getSize());
+                    id = updateLexicalRegister(id);
+                }
+            } else if (valVec.getSize() > 4000) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
+            } else {
+                id.setSize(valVec.getSize());
+                id = updateLexicalRegister(id);
+            }
+        }
         while (token.equals(",")) {
             matchToken(",");
             id1 = this.lexicalRegister;
             if ((id1.get_Class()).equals("")) {
                 id1.set_Class("CLASSE-VAR");
-                if (cond) id1.setType("INTEGER"); else id1.setType("CHAR");
+                if (cond)
+                    id1.setType("INTEGER");
+                else
+                    id1.setType("CHAR");
                 id1 = updateLexicalRegister(id1);
             } else {
                 throw new Error(
                         this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id1.getLexeme() + "].");
             }
             matchToken("id");
-            procedure_ValueVector();
-            log("Teste semantico: Var ID1 " + id1);
+            Symbol valVec1 = new Symbol(null, "valVec1");
+            procedure_ValueVector(valVec1);
+            if (valVec1.getSize() > 0) {
+                if (id1.getType().equals("INTEGER")) {
+                    if (valVec1.getSize() > 2000) {
+                        throw new Error(
+                                this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
+                    } else {
+                        id1.setSize(valVec1.getSize());
+                        id1 = updateLexicalRegister(id1);
+                    }
+                } else if (valVec1.getSize() > 4000) {
+                    throw new Error(
+                            this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
+                } else {
+                    id1.setSize(valVec1.getSize());
+                    id1 = updateLexicalRegister(id1);
+                }
+            }
         }
         matchToken(";");
-        log("Teste semantico: Var ID " + id);
     }
 
     /**
-     * Procedure for ValVet grammar
-     * ValVet -> "[" "tam" "]"  |   "=" [ "-" ] "valor"
-     * With Semantic Actions
-     * ValVet -> "[" "tam" <T2> "]"  |   "=" <C1>[<C2> "-" ] "valor"<T3>
+     * Procedure for ValVet grammar ValVet -> "[" "tam" "]" | "=" [ "-" ] "valor"
+     * With Semantic Actions ValVet -> "[" "tam" <T2> "]" | "=" <C1>[<C2> "-" ]
+     * "valor"<T3>
      */
-    public void procedure_ValueVector() {
+    public void procedure_ValueVector(Symbol valVec) {
         boolean cond = false;
         if (token.equals("[")) {
             matchToken("[");
+            if (!this.lexicalRegister.getType().equals("INTEGER")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else {
+                valVec.setSize(Integer.parseInt(this.lexicalRegister.getLexeme()));
+            }
             matchToken("constant");
             matchToken("]");
         } else if (token.equals("=")) {
             matchToken("=");
             if (token.equals("-")) {
+                cond = true;
                 matchToken("-");
+                if (!this.lexicalRegister.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    valVec.setType("INTEGER");
+                }
                 matchToken("constant");
             } else {
+                valVec.setType(this.lexicalRegister.getType());
                 matchToken("constant");
             }
         }
@@ -167,10 +217,9 @@ public class SyntacticAnalyzer {
     ////////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
-     * Procedure for Comando grammar
-     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
-     * With Semantic Actions
-     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     * Procedure for Comando grammar Comando -> Atribuição | Repetição | Teste | ";"
+     * | Escrita | Leitura With Semantic Actions Comando -> Atribuição | Repetição |
+     * Teste | ";" | Escrita | Leitura
      */
     public void procedure_Command() {
         log(">> SYN (Command)");
@@ -190,38 +239,77 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Atribuicao grammar
-     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
-     * With Semantic Actions
-     * Comando -> Atribuição | Repetição | Teste | ";" | Escrita |  Leitura
+     * Procedure for Atribuicao grammar Comando -> Atribuição | Repetição | Teste |
+     * ";" | Escrita | Leitura With Semantic Actions Comando -> Atribuição |
+     * Repetição | Teste | ";" | Escrita | Leitura
      */
     public void procedure_Assigment() {
+        Symbol id;
+        boolean cond = false;
+        id = this.lexicalRegister;
+        if (id.get_Class().equals("")) {
+            throw new Error(
+                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
+        }else if(id.get_Class().equals("CLASSE-CONST")){
+            throw new Error(
+                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        }
         matchToken("id");
         if (token.equals("[")) {
+            cond = true;
             matchToken("[");
-            procedure_Expression();
+            Symbol exp = new Symbol(null, "exp");
+            procedure_Expression(exp);
+            if(!exp.getType().equals("INTEGER") || id.getSize() > 0){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }
             matchToken("]");
         }
         matchToken("=");
-        procedure_Expression();
+        Symbol exp1 = new Symbol(null, "exp1");
+        procedure_Expression(exp1);
+        if(!exp1.getType().equals(id.getType())){
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+        }else if(id.getType().equals("INTEGER") && id.getSize() > 0){
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+        }
         matchToken(";");
     }
 
     /**
-     * Procedure for Repeticao grammar
-     * Repetição -> "for" "id" "=" Expressão "to" Expressão [ "step" "num" ] "do" ( "{" Comando "}" | Comando )
-     * With Semantic Actions
-     * Repetição ->  "for" "id"<U2> "=" Expressão <T17> "to" Expressão <C1>[<C2> "step" "num" <T18>] "do"
+     * Procedure for Repeticao grammar Repetição -> "for" "id" "=" Expressão "to"
+     * Expressão [ "step" "num" ] "do" ( "{" Comando "}" | Comando ) With Semantic
+     * Actions Repetição -> "for" "id"<U2> "=" Expressão <T17> "to" Expressão
+     * <C1>[<C2> "step" "num" <T18>] "do"
      */
     public void procedure_Loop() {
+        boolean cond = false;
+        Symbol id;
         matchToken("for");
+        id = this.lexicalRegister;
+        if (id.get_Class().equals("")) {
+            throw new Error(
+                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
+        }else if(id.get_Class().equals("CLASSE-CONST")){
+            throw new Error(
+                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        }
         matchToken("id");
         matchToken("=");
-        procedure_Expression();
+        Symbol exp = new Symbol(null, "exp");
+        procedure_Expression(exp);
+        if(!exp.getType().equals("INTEGER") || !id.getType().equals("INTEGER") || id.getSize() > 0){
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+        }
         matchToken("to");
-        procedure_Expression();
+        Symbol exp1 = new Symbol(null, "exp");
+        procedure_Expression(exp1);
         if (token.equals("step")) {
+            cond = true;
             matchToken("step");
+            if(!this.lexicalRegister.getType().equals("INTEGER")){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }
             matchToken("num");
         }
         matchToken("do");
@@ -238,14 +326,18 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Teste grammar
-     * Teste -> "if" Expressão "then" ( Comando | "{" { Comando }* "}" ) [ "else" ( Comando |  "{" { Comando }* "}" ) ]
-     * With Semantic Actions
-     * Teste -> "if" Expressão <T16> "then" ( Comando | "{" { Comando }* "}" ) [ "else" ( Comando |  "{" { Comando }* "}" ) ]
+     * Procedure for Teste grammar Teste -> "if" Expressão "then" ( Comando | "{" {
+     * Comando }* "}" ) [ "else" ( Comando | "{" { Comando }* "}" ) ] With Semantic
+     * Actions Teste -> "if" Expressão <T16> "then" ( Comando | "{" { Comando }* "}"
+     * ) [ "else" ( Comando | "{" { Comando }* "}" ) ]
      */
     public void procedure_Condition() {
         matchToken("if");
-        procedure_Expression();
+        Symbol exp = new Symbol(null, "exp");
+        procedure_Expression(exp);
+        if(!exp.getType().equals("LOGICAL")){
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+        }
         matchToken("then");
         if (token.equals("{")) {
             matchToken("{");
@@ -274,10 +366,9 @@ public class SyntacticAnalyzer {
 
     // Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
     /**
-     * Procedure for Escrita grammar
-     * Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
-     * With Semantic Actions
-     * Escrita -> "write" "(" Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
+     * Procedure for Escrita grammar Escrita -> "write" "(" Expressões ")" ";" |
+     * "writeln" "(" Expressões ")" ";" With Semantic Actions Escrita -> "write" "("
+     * Expressões ")" ";" | "writeln" "(" Expressões ")" ";"
      */
     public void procedure_Write() {
         if (token.equals("write")) {
@@ -296,14 +387,21 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Leitura grammar
-     * Leitura -> "readln" "(" "id" ")" ";"
-     * With Semantic Actions
-     * Leitura -> "readln" "(" "id"<U2> ")" ";"
+     * Procedure for Leitura grammar Leitura -> "readln" "(" "id" ")" ";" With
+     * Semantic Actions Leitura -> "readln" "(" "id"<U2> ")" ";"
      */
     public void procedure_Read() {
+        Symbol id;
         matchToken("readln");
         matchToken("(");
+        id = this.lexicalRegister;
+        if (id.get_Class().equals("")) {
+            throw new Error(
+                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
+        }else if(id.get_Class().equals("CLASSE-CONST")){
+            throw new Error(
+                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        }
         matchToken("id");
         matchToken(")");
         matchToken(";");
@@ -311,15 +409,14 @@ public class SyntacticAnalyzer {
 
     //////////////////////////////////////////////////////////// Expressions
     //////////////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    
+
     /**
-     * Procedure for Expressoes grammar
-     * Expressões -> Expressão { "," Expressões }*
-     * With Semantic Actions
-     * Expressões -> Expressão { "," Expressões }*
+     * Procedure for Expressoes grammar Expressões -> Expressão { "," Expressões }*
+     * With Semantic Actions Expressões -> Expressão { "," Expressões }*
      */
     public void procedure_Expressions() {
-        procedure_Expression();
+        Symbol exp = new Symbol(null, "exp");
+        procedure_Expression(exp);
         if (token.equals(",")) {
             matchToken(",");
             procedure_Expressions();
@@ -327,104 +424,272 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Expressao grammar
-     * Expressão -> ExpressãoS [ ("=" | "<>" | "<" | ">" | "<=" | ">=") ExpressãoS ] 
-     * With Semantic Actions
-     * Expressão -> ExpressãoS<T9> [ ("=" <C4>| "<>"<C5> | "<" <C6>| ">"<C7> | "<=" <C8>| ">=") ExpressãoS¹ <T15>] 
+     * Procedure for Expressao grammar Expressão -> ExpressãoS [ ("=" | "<>" | "<" |
+     * ">" | "<=" | ">=") ExpressãoS ] With Semantic Actions Expressão ->
+     * ExpressãoS<T9> [ ("=" <C4>| "<>"<C5> | "<" <C6>| ">"<C7> | "<=" <C8>| ">=")
+     * ExpressãoS¹ <T15>]
      */
-    public void procedure_Expression() {
-        procedure_Expression_S();
+    public void procedure_Expression(Symbol exp) {
+        boolean condEquals = false, condDiff = false, condLess = false, condGreater = false, condLessEquals = false;
+        Symbol expS = new Symbol(null, "expS");
+        procedure_Expression_S(expS);
+        exp.setType(expS.getType());
         if (token.equals("=")) {
+            condEquals = true;
+            condLess = condGreater = condLessEquals = condDiff = false;
             matchToken("=");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            if (!exp.getType().equals(expS1.getType())){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }else{
+                exp.setType("LOGICAL");
+            }
         } else if (token.equals("<>")) {
+            condDiff = true;
+            condLess = condGreater = condLessEquals = condEquals = false;
             matchToken("<>");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            if (!exp.getType().equals(expS1.getType())){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }else{
+                exp.setType("LOGICAL");
+            }
         } else if (token.equals("<")) {
+            condLess = true;
+            condEquals = condGreater = condLessEquals = condDiff = false;
             matchToken("<");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            if (!exp.getType().equals(expS1.getType())){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }else{
+                exp.setType("LOGICAL");
+            }
         } else if (token.equals(">")) {
+            condGreater = true;
+            condLess = condEquals = condLessEquals = condDiff = false;
             matchToken(">");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            log(" Tipos : " + exp);
+            log(" Tipos : " + expS1);
+            if (!exp.getType().equals(expS1.getType())){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }else{
+                exp.setType("LOGICAL");
+            }
         } else if (token.equals("<=")) {
+            condLessEquals = true;
+            condLess = condGreater = condEquals = condDiff = false;
             matchToken("<=");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            if (!exp.getType().equals(expS1.getType()))
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
         } else if (token.equals(">=")) {
+            condLess = condGreater = condLessEquals = condDiff = condEquals = false;
             matchToken(">=");
-            procedure_Expression_S();
+            Symbol expS1 = new Symbol(null, "expS1");
+            procedure_Expression_S(expS1);
+            if (!exp.getType().equals(expS1.getType())){
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }else{
+                exp.setType("LOGICAL");
+            }
         }
     }
 
     /**
-     * Procedure for ExpressaoS grammar
-     * ExpressãoS -> ["+" | "-"] Termo {("+" | "-" | "or") Termo}*
-     * With Semantic Actions
-     * ExpressãoS -> [<C9>"+" |<C10> "-"] Termo <T13> {("+"<C9> | "-"<C10> | "or") Termo¹ <T14>}*
+     * Procedure for ExpressaoS grammar ExpressãoS -> ["+" | "-"] Termo {("+" | "-"
+     * | "or") Termo}* With Semantic Actions ExpressãoS -> [<C9>"+" |<C10> "-"]
+     * Termo <T13> {("+"<C9> | "-"<C10> | "or") Termo¹ <T14>}*
      */
-    public void procedure_Expression_S() {
+    public void procedure_Expression_S(Symbol expS) {
+        boolean condSoma = false, condSub = false;
         if (token.equals("+")) {
+            condSoma = true;
             matchToken("+");
         } else if (token.equals("-")) {
+            condSub = true;
+            condSoma = false;
             matchToken("-");
         }
-        procedure_Term();
+        Symbol term = new Symbol(null, "term");
+        procedure_Term(term);
+        if (condSoma) {
+            if (!term.getType().equals("INTEGER")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else if (term.getSize() > 0) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else {
+                expS.setSize(term.getSize());
+                expS.setType("INTEGER");
+            }
+        } else if (condSub) {
+            if (!term.getType().equals("INTEGER")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else if (term.getSize() > 0) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else {
+                expS.setSize(term.getSize());
+                expS.setType("INTEGER");
+            }
+        } else {
+            expS.setSize(term.getSize());
+            expS.setType(term.getType());
+        }
         while (token.equals("+") || token.equals("-") || token.equals("or")) {
             if (token.equals("+")) {
+                condSoma = true;
+                condSub = false;
                 matchToken("+");
             } else if (token.equals("-")) {
+                condSoma = false;
+                condSub = true;
                 matchToken("-");
             } else {
                 matchToken("or");
             }
-            procedure_Term();
+            Symbol term1 = new Symbol(null, "term1");
+            procedure_Term(term1);
+            if (condSoma) {
+                if (!term1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else if (term1.getSize() > 0) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    expS.setSize(term1.getSize());
+                    expS.setType("INTEGER");
+                }
+            } else if (condSub) {
+                if (!term1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else if (term1.getSize() > 0) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    expS.setSize(term1.getSize());
+                    expS.setType("INTEGER");
+                }
+            } else {
+                if (!term1.getType().equals("LOGICAL") || !expS.getType().equals("LOGICAL")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                }
+            }
         }
     }
 
     /**
-     * Procedure for Termo grammar
-     * Termo -> Fator { ( "*" | "/" | "%" | "and" ) Fator }*
-     * With Semantic Actions
-     * Termo -> Fator<T11> { ( "*"<C11> | "/" <C12>| "%" <C13>| "and" ) Fator¹<T12> }*
+     * Procedure for Termo grammar Termo -> Fator { ( "*" | "/" | "%" | "and" )
+     * Fator }* With Semantic Actions Termo -> Fator<T11> { ( "*"<C11> | "/" <C12>|
+     * "%" <C13>| "and" ) Fator¹<T12> }*
      */
-    public void procedure_Term() {
-        procedure_Factor();
+    public void procedure_Term(Symbol term) {
+        boolean condMult = false, condDiv = false, condMod = false;
+        Symbol factor = new Symbol(null, "factor");
+        procedure_Factor(factor);
+        term.setType(factor.getType());
         while (token.equals("*") || token.equals("/") || token.equals("%") || token.equals("and")) {
             if (token.equals("*")) {
+                condMult = true;
+                condDiv = false;
+                condMod = false;
                 matchToken("*");
             } else if (token.equals("/")) {
+                condMult = false;
+                condDiv = true;
+                condMod = false;
                 matchToken("/");
             } else if (token.equals("%")) {
+                condMult = false;
+                condDiv = false;
+                condMod = true;
                 matchToken("%");
             } else {
                 matchToken("and");
             }
-            procedure_Factor();
+            Symbol factor1 = new Symbol(null, "factor1");
+            procedure_Factor(factor1);
+            if (condMult) {
+                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    term.setType("INTEGER");
+                }
+            } else if (condDiv) {
+                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    term.setType("INTEGER");
+                }
+            } else if (condMod) {
+                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    term.setType("INTEGER");
+                }
+            } else {
+                if (!term.getType().equals("LOGICAL") || !factor1.getType().equals("LOGICAL")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                }
+            }
         }
     }
 
     /**
-     * Procedure for Fator grammar
-     * Fator -> "not" Fator | "(" Expressão ")" | constante | id [ "[" Expressão "]" ]
-     * With Semantic Actions
-     * Fator -> "not" Fator¹ <T10> | "(" Expressão <T8> ")" | "valor"<T7> | id <U2> <C1>[<C2> "[" Expressão "]" ]<T6>
+     * Procedure for Fator grammar Fator -> "not" Fator | "(" Expressão ")" |
+     * constante | id [ "[" Expressão "]" ] With Semantic Actions Fator -> "not"
+     * Fator¹ <T10> | "(" Expressão <T8> ")" | "valor"<T7> | id <U3> <C1>[<C2> "["
+     * Expressão "]" ]<T6>
      */
-    public void procedure_Factor() {
+    public void procedure_Factor(Symbol factor) {
         boolean cond = false;
+        Symbol id;
         if (token.equals("not")) {
             matchToken("not");
-            procedure_Factor();
+            Symbol factor1 = new Symbol(null, "factor1");
+            procedure_Factor(factor1);
+            if (!factor1.getType().equals("LOGICAL")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            }
         } else if (token.equals("(")) {
             matchToken("(");
-            procedure_Expression();
+            Symbol exp = new Symbol(null, "exp");
+            procedure_Expression(exp);
+            factor.setType(exp.getType());
             matchToken(")");
         } else if (token.equals("constant")) {
+            factor.setType(this.lexicalRegister.getType());
             matchToken("constant");
         } else {
+            id = this.lexicalRegister;
+            if (id.get_Class().equals("")) {
+                throw new Error(
+                        this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
+            }
             matchToken("id");
             if (token.equals("[")) {
+                cond = true;
                 matchToken("[");
-                procedure_Expression();
+                Symbol exp1 = new Symbol(null, "exp1");
+                procedure_Expression(exp1);
+                if (!exp1.getType().equals("INTEGER")) {
+                    throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                } else {
+                    factor.setType(id.getType());
+                }
                 matchToken("]");
+            }
+            if (cond == false) {
+                factor.setType(id.getType());
+                factor.setSize(id.getSize());
             }
         }
     }
