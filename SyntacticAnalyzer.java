@@ -28,16 +28,19 @@ public class SyntacticAnalyzer {
 
     // S -> { Declarações }* { Comando }* [EOF(?)]
     public void procedure_S() {
-        while (token.equals("var") || token.equals("const")) {
-            procedure_Statemants();
-        }
-        // token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
-        while (token.equals("id") || token.equals("for") || token.equals("if") || token.equals(";")
-                || token.equals("readln") || token.equals("write") || token.equals("writeln")) {
-            procedure_Command();
-        }
-        matchToken("EOF");
         try {
+            codeWriter.write("sseg segment stack         ; inicio seg pilha\n");
+            codeWriter.write("byte 4000h DUP(?)          ; dimensiona pilha\n");
+            codeWriter.write("sseg ends                  ; fim seg pilha\n\n");
+            while (token.equals("var") || token.equals("const")) {
+                procedure_Statemants();
+            }
+            // token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
+            while (token.equals("id") || token.equals("for") || token.equals("if") || token.equals(";")
+                    || token.equals("readln") || token.equals("write") || token.equals("writeln")) {
+                procedure_Command();
+            }
+            matchToken("EOF");
             codeWriter.close();
         } catch (IOException ioe) {
             throw new Error("problema com o arquivo de saida");
@@ -53,54 +56,61 @@ public class SyntacticAnalyzer {
      * | "const" "id"<U1> "="<C1>[<C2> "-" ] "valor" <T5><G>";"
      */
     public void procedure_Statemants() {
-        boolean cond = false;
-        Symbol id;
-        log(">> SYN (Statemants)");
-        if (token.equals("var")) {
-            matchToken("var");
-            Symbol listIds = new Symbol(null, "listIds");
-            procedure__ListIDs(listIds);
-            while (token.equals("integer") || token.equals("char")) {
-                Symbol listIds1 = new Symbol(null, "listIds");
-                procedure__ListIDs(listIds1);
-            }
-        } else if (token.equals("const")) {
-            matchToken("const");
-            id = this.lexicalRegister;
-            if ((id.get_Class()).equals("")) { // Teste de Unicidade
-                id.set_Class("CLASSE-CONST");
-                id = updateLexicalRegister(id);
-            } else {
-                error = new Error(
-                        this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
-            }
-            matchToken("id");
-            matchToken("=");
-            cond = false;
-            if (token.equals("-")) {
-                cond = true;
-                matchToken("-");
-                // Valor
-                if (cond) { // T5
-                    if (!this.lexicalRegister.getType().equals("INTEGER")) {
+        try {
+            codeWriter.write("dseg segment public       ; inicio seg dados\n");
+            codeWriter.write("byte 4000h DUP(?)         ; temporarios\n");
+            boolean cond = false;
+            Symbol id;
+            log(">> SYN (Statemants)");
+            if (token.equals("var")) {
+                matchToken("var");
+                Symbol listIds = new Symbol(null, "listIds");
+                procedure__ListIDs(listIds);
+                while (token.equals("integer") || token.equals("char")) {
+                    Symbol listIds1 = new Symbol(null, "listIds");
+                    procedure__ListIDs(listIds1);
+                }
+            } else if (token.equals("const")) {
+                matchToken("const");
+                id = this.lexicalRegister;
+                if ((id.get_Class()).equals("")) { // Teste de Unicidade
+                    id.set_Class("CLASSE-CONST");
+                    id = updateLexicalRegister(id);
+                } else {
+                    error = new Error(
+                            this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
+                }
+                matchToken("id");
+                matchToken("=");
+                cond = false;
+                if (token.equals("-")) {
+                    cond = true;
+                    matchToken("-");
+                    // Valor
+                    if (cond) { // T5
+                        if (!this.lexicalRegister.getType().equals("INTEGER")) {
+                            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                        } else {
+                            id.setType("INTEGER");
+                            id = updateLexicalRegister(id);
+                        }
+                    }
+                    matchToken("constant");
+                    matchToken(";");
+                } else {
+                    if (this.lexicalRegister.getType().equals("STRING")) {
                         error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
                     } else {
-                        id.setType("INTEGER");
+                        id.setType(this.lexicalRegister.getType());
                         id = updateLexicalRegister(id);
                     }
+                    matchToken("constant");
+                    matchToken(";");
                 }
-                matchToken("constant");
-                matchToken(";");
-            } else {
-                if (this.lexicalRegister.getType().equals("STRING")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    id.setType(this.lexicalRegister.getType());
-                    id = updateLexicalRegister(id);
-                }
-                matchToken("constant");
-                matchToken(";");
             }
+            codeWriter.write("dseg ends");
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
         }
     }
 
@@ -261,9 +271,9 @@ public class SyntacticAnalyzer {
         if (id.get_Class().equals("")) {
             error = new Error(
                     this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        }else if(id.get_Class().equals("CLASSE-CONST")){
-            error = new Error(
-                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        } else if (id.get_Class().equals("CLASSE-CONST")) {
+            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
+                    + id.getLexeme() + "].");
         }
         matchToken("id");
         if (token.equals("[")) {
@@ -271,7 +281,7 @@ public class SyntacticAnalyzer {
             matchToken("[");
             Symbol exp = new Symbol(null, "exp");
             procedure_Expression(exp);
-            if(!exp.getType().equals("INTEGER") || id.getSize() > 0){
+            if (!exp.getType().equals("INTEGER") || id.getSize() > 0) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
             }
             matchToken("]");
@@ -279,9 +289,9 @@ public class SyntacticAnalyzer {
         matchToken("=");
         Symbol exp1 = new Symbol(null, "exp1");
         procedure_Expression(exp1);
-        if(!exp1.getType().equals(id.getType())){
+        if (!exp1.getType().equals(id.getType())) {
             error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        }else if(id.getType().equals("INTEGER") && id.getSize() > 0){
+        } else if (id.getType().equals("INTEGER") && id.getSize() > 0) {
             error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
         }
         matchToken(";");
@@ -301,15 +311,15 @@ public class SyntacticAnalyzer {
         if (id.get_Class().equals("")) {
             error = new Error(
                     this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        }else if(id.get_Class().equals("CLASSE-CONST")){
-            error = new Error(
-                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        } else if (id.get_Class().equals("CLASSE-CONST")) {
+            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
+                    + id.getLexeme() + "].");
         }
         matchToken("id");
         matchToken("=");
         Symbol exp = new Symbol(null, "exp");
         procedure_Expression(exp);
-        if(!exp.getType().equals("INTEGER") || !id.getType().equals("INTEGER") || id.getSize() > 0){
+        if (!exp.getType().equals("INTEGER") || !id.getType().equals("INTEGER") || id.getSize() > 0) {
             error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
         }
         matchToken("to");
@@ -318,7 +328,7 @@ public class SyntacticAnalyzer {
         if (token.equals("step")) {
             cond = true;
             matchToken("step");
-            if(!this.lexicalRegister.getType().equals("INTEGER")){
+            if (!this.lexicalRegister.getType().equals("INTEGER")) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
             }
             matchToken("num");
@@ -346,7 +356,7 @@ public class SyntacticAnalyzer {
         matchToken("if");
         Symbol exp = new Symbol(null, "exp");
         procedure_Expression(exp);
-        if(!exp.getType().equals("LOGICAL")){
+        if (!exp.getType().equals("LOGICAL")) {
             error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
         }
         matchToken("then");
@@ -409,9 +419,9 @@ public class SyntacticAnalyzer {
         if (id.get_Class().equals("")) {
             error = new Error(
                     this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        }else if(id.get_Class().equals("CLASSE-CONST")){
-            error = new Error(
-                this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + id.getLexeme() + "].");
+        } else if (id.get_Class().equals("CLASSE-CONST")) {
+            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
+                    + id.getLexeme() + "].");
         }
         matchToken("id");
         matchToken(")");
@@ -451,9 +461,9 @@ public class SyntacticAnalyzer {
             matchToken("=");
             Symbol expS1 = new Symbol(null, "expS1");
             procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())){
+            if (!exp.getType().equals(expS1.getType())) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }else{
+            } else {
                 exp.setType("LOGICAL");
             }
         } else if (token.equals("<>")) {
@@ -462,9 +472,9 @@ public class SyntacticAnalyzer {
             matchToken("<>");
             Symbol expS1 = new Symbol(null, "expS1");
             procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())){
+            if (!exp.getType().equals(expS1.getType())) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }else{
+            } else {
                 exp.setType("LOGICAL");
             }
         } else if (token.equals("<")) {
@@ -473,9 +483,9 @@ public class SyntacticAnalyzer {
             matchToken("<");
             Symbol expS1 = new Symbol(null, "expS1");
             procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())){
+            if (!exp.getType().equals(expS1.getType())) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }else{
+            } else {
                 exp.setType("LOGICAL");
             }
         } else if (token.equals(">")) {
@@ -486,9 +496,9 @@ public class SyntacticAnalyzer {
             procedure_Expression_S(expS1);
             log(" Tipos : " + exp);
             log(" Tipos : " + expS1);
-            if (!exp.getType().equals(expS1.getType())){
+            if (!exp.getType().equals(expS1.getType())) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }else{
+            } else {
                 exp.setType("LOGICAL");
             }
         } else if (token.equals("<=")) {
@@ -504,9 +514,9 @@ public class SyntacticAnalyzer {
             matchToken(">=");
             Symbol expS1 = new Symbol(null, "expS1");
             procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())){
+            if (!exp.getType().equals(expS1.getType())) {
                 error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }else{
+            } else {
                 exp.setType("LOGICAL");
             }
         }
