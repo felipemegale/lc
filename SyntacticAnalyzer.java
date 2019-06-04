@@ -33,6 +33,8 @@ public class SyntacticAnalyzer {
             codeWriter.write("sseg segment stack         ; inicio seg pilha\n");
             codeWriter.write("byte 4000h DUP(?)          ; dimensiona pilha\n");
             codeWriter.write("sseg ends                  ; fim seg pilha\n\n");
+            codeWriter.write("dseg segment public        ; inicio seg dados\n");
+            codeWriter.write("byte 4000h DUP(?)          ; temporarios\n");
             while (token.equals("var") || token.equals("const")) {
                 procedure_Statemants();
             }
@@ -67,42 +69,36 @@ public class SyntacticAnalyzer {
      * | "const" "id"<U1> "="<C1>[<C2> "-" ] "valor" <T5><G>";"
      */
     public void procedure_Statemants() {
-        try {
-            codeWriter.write("dseg segment public        ; inicio seg dados\n");
-            codeWriter.write("byte 4000h DUP(?)          ; temporarios\n");
-            boolean cond = false;
-            Symbol id, value;
-            log(">> SYN (Statemants)");
-            if (token.equals("var")) {
-                matchToken("var");
-                Symbol listIds = new Symbol(null, "listIds");
-                procedure__ListIDs(listIds);
-                while (token.equals("integer") || token.equals("char")) {
-                    Symbol listIds1 = new Symbol(null, "listIds");
-                    procedure__ListIDs(listIds1);
-                }
-            } else if (token.equals("const")) {
-                matchToken("const");
-                id = this.lexicalRegister;
-                matchToken("id");
-                semanticActionU1(id); // Acao Semantica Unicidade 1
-                matchToken("=");
-                if (token.equals("-")) {
-                    cond = true;
-                    matchToken("-");
-                    value = this.lexicalRegister;
-                    matchToken("constant");
-                    semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = true
-                    matchToken(";");
-                } else {
-                    value = this.lexicalRegister;
-                    matchToken("constant");
-                    semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = false
-                    matchToken(";");
-                }
+        boolean cond = false;
+        Symbol id, value;
+        log(">> SYN (Statemants)");
+        if (token.equals("var")) {
+            matchToken("var");
+            Symbol listIds = new Symbol(null, "listIds");
+            procedure__ListIDs(listIds);
+            while (token.equals("integer") || token.equals("char")) {
+                Symbol listIds1 = new Symbol(null, "listIds");
+                procedure__ListIDs(listIds1);
             }
-        } catch (IOException ioe) {
-            throw new Error("problema com o arquivo de saida");
+        } else if (token.equals("const")) {
+            matchToken("const");
+            id = this.lexicalRegister;
+            matchToken("id");
+            semanticActionU1(id); // Acao Semantica Unicidade 1
+            matchToken("=");
+            if (token.equals("-")) {
+                cond = true;
+                matchToken("-");
+                value = this.lexicalRegister;
+                matchToken("constant");
+                semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = true
+                matchToken(";");
+            } else {
+                value = this.lexicalRegister;
+                matchToken("constant");
+                semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = false
+                matchToken(";");
+            }
         }
     }
 
@@ -128,29 +124,36 @@ public class SyntacticAnalyzer {
         matchToken("id");
         semanticActionU1(id); // Acao Semantica de Unicidade 1
         semanticActionT1(condInt, id); // Acao Semantica de Tipos 1
-        codeGenerationT1(id); // Geracao de codigo para T1
         cond = false;
         if (token.equals("[") || token.equals("=")) {
             cond = true;
             Symbol valueVector = new Symbol(null, "valueVector");
             procedure_ValueVector(valueVector);
             semanticActionT4(cond, id, valueVector);
-            codeGenerationT4(id);
         }
+        if (cond) {
+            codeGenerationT4(id);
+        } else {
+            codeGenerationT1(id);
+        }
+
         while (token.equals(",")) {
             matchToken(",");
             id1 = this.lexicalRegister;
             matchToken("id");
             semanticActionU1(id1);
             semanticActionT1(condInt, id1);
-            codeGenerationT1(id); // Geracao de codigo para T1
             cond = false;
             if (token.equals("[") || token.equals("=")) {
                 cond = true;
                 Symbol valueVector1 = new Symbol(null, "valueVector1");
                 procedure_ValueVector(valueVector1);
-                semanticActionT4(cond, id, valueVector1);
-                codeGenerationT4(id);
+                semanticActionT4(cond, id1, valueVector1);
+            }
+            if (cond) {
+                codeGenerationT4(id1);
+            } else {
+                codeGenerationT1(id1);
             }
         }
         matchToken(";");
@@ -699,8 +702,10 @@ public class SyntacticAnalyzer {
     public void semanticActionT1(boolean condition, Symbol id) {
         if (condition) {
             id.setType("INTEGER");
+            id.set_Class("CLASSE_VAR");
         } else {
             id.setType("CHAR");
+            id.set_Class("CLASSE_VAR");
         }
         id = updateLexicalRegister(id);
         log("Semantic Action T1 -> condition: " + condition + " id: " + id);
@@ -771,8 +776,6 @@ public class SyntacticAnalyzer {
             if (id.getType().equals("INTEGER")) {
                 if (valueVector.getSize() > 2000) {
                     throwError(9, "");
-                } else if (!valueVector.getType().equals(id.getType())) {
-                    throwError(8, "");
                 } else {
                     id.setSize(valueVector.getSize());
                     id = updateLexicalRegister(id);
@@ -780,8 +783,6 @@ public class SyntacticAnalyzer {
             } else {
                 if (valueVector.getSize() > 4000) {
                     throwError(9, "");
-                } else if (!valueVector.getType().equals(id.getType())) {
-                    throwError(8, "");
                 } else {
                     id.setSize(valueVector.getSize());
                     id = updateLexicalRegister(id);
@@ -822,7 +823,7 @@ public class SyntacticAnalyzer {
                 throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
             } else {
                 id.setType("INTEGER");
-                id.setType("CLASSE-CONST");
+                id.set_Class("CLASSE-CONST");
                 id = updateLexicalRegister(id);
             }
         } else {
@@ -830,7 +831,7 @@ public class SyntacticAnalyzer {
                 throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
             } else {
                 id.setType(value.getType());
-                id.setType("CLASSE-CONST");
+                id.set_Class("CLASSE-CONST");
                 id = updateLexicalRegister(id);
             }
         }
