@@ -14,24 +14,25 @@ public class LC {
     public static void main(String[] args) {
         String sourceFileName, outputFileName;
         FileWriter codeWriter;
-        if(args.length == 2){
-            sourceFileName = args[0];
-            outputFileName = args[1];
-            try {
-                codeWriter = new FileWriter(outputFileName);
-                if(sourceFileName.endsWith(".l") && outputFileName.endsWith(".asm")){
-                    File sourceFile = new File(sourceFileName);
-                    LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
-                    SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer, codeWriter);
-                    syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
-                    syntacticAnalyzer.procedure_S();
-                }else{
-                    codeWriter.close();
-                    throw new Error("parametros invalidos.");
+        try {
+            if (args.length == 2) {
+                sourceFileName = args[0];
+                outputFileName = args[1];
+                try {
+                    codeWriter = new FileWriter(outputFileName);
+                    if (sourceFileName.endsWith(".l") && outputFileName.endsWith(".asm")) {
+                        File sourceFile = new File(sourceFileName);
+                        LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
+                        SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer, codeWriter);
+                        syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
+                        syntacticAnalyzer.procedure_S();
+                    } else {
+                        codeWriter.close();
+                        throw new Error("parametros invalidos.");
+                    }
+                } catch (IOException ioe) {
+                    throw new Error("problema de arquivo");
                 }
-            } catch (IOException ioe) {
-                throw new Error("problema de arquivo");
-            }
             }
         } catch (Error e) {
             System.out.println(e.getMessage());

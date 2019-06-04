@@ -19,7 +19,7 @@ public class SyntacticAnalyzer {
     boolean logEnabled;
 
     FileWriter codeWriter;
-    int nextAvailableMemoryPosition = 4000;
+    int nextAvailableMemoryPosition = Integer.decode("0x00004000");
 
     public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer, FileWriter codeWriter) {
         this.lexicalAnalyzer = lexicalAnalyzer;
@@ -116,6 +116,7 @@ public class SyntacticAnalyzer {
         boolean cond = false;
         boolean condInt = false;
         Symbol id, id1;
+        Symbol valueVector = null;
         if (token.equals("integer")) {
             condInt = true;
             matchToken("integer");
@@ -129,15 +130,11 @@ public class SyntacticAnalyzer {
         cond = false;
         if (token.equals("[") || token.equals("=")) {
             cond = true;
-            Symbol valueVector = new Symbol(null, "valueVector");
+            valueVector = new Symbol(null, "valueVector");
             procedure_ValueVector(valueVector);
             semanticActionT4(cond, id, valueVector);
         }
-        if (cond) {
-            codeGenerationT4(id);
-        } else {
-            codeGenerationT1(id);
-        }
+        codeGenerationT1(id, valueVector, cond);
 
         while (token.equals(",")) {
             matchToken(",");
@@ -152,11 +149,7 @@ public class SyntacticAnalyzer {
                 procedure_ValueVector(valueVector1);
                 semanticActionT4(cond, id1, valueVector1);
             }
-            if (cond) {
-                codeGenerationT4(id1);
-            } else {
-                codeGenerationT1(id1);
-            }
+            codeGenerationT1(id, valueVector, cond);
         }
         matchToken(";");
     }
@@ -582,24 +575,47 @@ public class SyntacticAnalyzer {
      * 
      * @param id
      */
-    public void codeGenerationT1(Symbol id) {
-        try {
-            if (id.getSize() == 0) {
+    public void codeGenerationT1(Symbol id, Symbol valueVector, boolean cond) {
+        String code = "";
+        if (cond) { // se entrou em value vector
+            if (valueVector.getSize() > 0) { // se eh um vetor
                 if (id.getType().equals("INTEGER")) {
-                    codeWriter.write("sword ?" +  + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    code = "sword " + Integer.toString(valueVector.getSize() * 2) + " DUP(?)         ; "
+                            + nextAvailableMemoryPosition + "\n";
+                    id.setAddr();
+                    nextAvailableMemoryPosition += 2 * valueVector.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                } else if (id.getType().equals("CHAR")) {
+                    code = "byte " + Integer.toString(valueVector.getSize()) + "h DUP(?)         ; "
+                            + nextAvailableMemoryPosition + "\n";
+                    nextAvailableMemoryPosition += valueVector.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                }
+            } else { // se eh uma atribuicao
+                if (id.getType().equals("INTEGER")) {
+                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
                     nextAvailableMemoryPosition += 2;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 } else if (id.getType().equals("CHAR")) {
-                    codeWriter.write("byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
                     nextAvailableMemoryPosition++;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             }
-        } catch (IOException ioe) {
-            throw new Error("problema com o arquivo de saida");
+        } else { // se nao for vetor nem atribuicao
+            if (id.getType().equals("INTEGER")) {
+                code  = "sword ?          ; endereco atual: " + nextAvailableMemoryPosition + "\n";
+                id.setAddr(nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition += 2;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            } else if (id.getType().equals("CHAR")) {
+                codeWriter.write("byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
+                id.setAddr(nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition++;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            }
         }
+        writeCode(code);
     }
 
     /**
@@ -620,11 +636,12 @@ public class SyntacticAnalyzer {
      * caractere; }else{ valueVector.tipo = inteiro; } }
      */
     public void semanticActionT3(boolean condition, Symbol value, Symbol valueVector) {
-        if (condition) {
+        if (condition) { // se for atribuicao
             if (!value.getType().equals("INTEGER")) {
                 throwError(8, "");
             } else {
                 valueVector.setType("INTEGER");
+                valueVector.setLexeme(value.getLexeme());
             }
         } else {
             valueVector.setType(value.getType());
@@ -662,26 +679,6 @@ public class SyntacticAnalyzer {
         log("Semantic Action T4 -> condition: " + condition + " id: " + id + " valueVector: " + valueVector);
     }
 
-    public void codeGenerationT4(Symbol id) {
-        try {
-            if (id.getType().equals("INTEGER")) {
-                if (id.getSize() > 0) {
-                    codeWriter.write("sword " + Integer.toString(id.getSize() * 2) + " DUP(?)         ; " + nextAvailableMemoryPosition + "\n");
-                    nextAvailableMemoryPosition += 2 * id.getSize();
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                }
-            } else if (id.getType().equals("CHAR")) {
-                if (id.getSize() > 0) {
-                    codeWriter.write("byte " + Integer.toString(id.getSize()) + "h DUP(?)         ; " + nextAvailableMemoryPosition + "\n");
-                    nextAvailableMemoryPosition += id.getSize();
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                }
-            }
-        } catch (IOException ioe) {
-            throw new Error("problema com o arquivo de saida");
-        }
-    }
-
     /**
      * if (cond) { if (!isNumerico(valor.lex)) { ERRO } else { id.tipo = inteiro } }
      * else { if (isNumerico(valor.lex)) { id.tipo = inteiro } else { id.tipo =
@@ -708,24 +705,27 @@ public class SyntacticAnalyzer {
         log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
     }
 
-
     public void codeGenerationT5(Symbol id, Symbol value) {
         try {
             if (id.getSize() == 0) {
                 if (id.getType().equals("INTEGER")) {
-                    codeWriter.write("sword " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    codeWriter.write("sword " + value.getLexeme() + "         ; endereco atual: "
+                            + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte) nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition += 2;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 } else if (id.getType().equals("CHAR")) {
-                    codeWriter.write("byte " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    codeWriter.write("byte " + value.getLexeme() + "         ; endereco atual: "
+                            + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte) nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition++;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             }
         } catch (IOException ioe) {
             throw new Error("problema com o arquivo de saida");
+        }
+    }
 
     /**
      * if(cond){ if(Expressão.tipo != inteiro){ ERRO }else{ Fator.tipo = id.tipo
@@ -993,16 +993,16 @@ public class SyntacticAnalyzer {
      * }else{ if(exp.tam + 1 > id.tam){ ERRO } }
      */
     public void semanticActionT20(boolean cond, Symbol id, Symbol exp) {
-        if(!exp.getType().equals(id.getType())){
+        if (!exp.getType().equals(id.getType())) {
             throwError(8, "");
-        }else if(exp.getType().equals("INTEGER") && id.getType().equals("INTEGER")){
-            if(exp.getSize() > 0){
+        } else if (exp.getType().equals("INTEGER") && id.getType().equals("INTEGER")) {
+            if (exp.getSize() > 0) {
                 throwError(8, "");
-            }else if(id.getSize() > 0 && cond == false){
+            } else if (id.getSize() > 0 && cond == false) {
                 throwError(8, "");
             }
-        }else{
-            if(exp.getSize() + 1 > id.getSize()){
+        } else {
+            if (exp.getSize() + 1 > id.getSize()) {
                 throwError(9, "");
             }
         }
@@ -1066,6 +1066,14 @@ public class SyntacticAnalyzer {
             throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
         case 9:
             throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tamanho do vetor excede o máximo permitido.");
+        }
+    }
+
+    public void writeCode(String code) {
+        try {
+            codeWriter.write(code);
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
         }
     }
 
