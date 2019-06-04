@@ -19,6 +19,7 @@ public class SyntacticAnalyzer {
     boolean logEnabled;
 
     FileWriter codeWriter;
+    int nextAvailableMemoryPosition = 4000;
 
     public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer, FileWriter codeWriter) {
         this.lexicalAnalyzer = lexicalAnalyzer;
@@ -127,12 +128,14 @@ public class SyntacticAnalyzer {
         matchToken("id");
         semanticActionU1(id); // Acao Semantica de Unicidade 1
         semanticActionT1(condInt, id); // Acao Semantica de Tipos 1
+        codeGenerationT1(id); // Geracao de codigo para T1
         cond = false;
         if (token.equals("[") || token.equals("=")) {
             cond = true;
             Symbol valueVector = new Symbol(null, "valueVector");
             procedure_ValueVector(valueVector);
             semanticActionT4(cond, id, valueVector);
+            codeGenerationT4(id);
         }
         while (token.equals(",")) {
             matchToken(",");
@@ -140,12 +143,14 @@ public class SyntacticAnalyzer {
             matchToken("id");
             semanticActionU1(id1);
             semanticActionT1(condInt, id1);
+            codeGenerationT1(id); // Geracao de codigo para T1
             cond = false;
             if (token.equals("[") || token.equals("=")) {
                 cond = true;
                 Symbol valueVector1 = new Symbol(null, "valueVector1");
                 procedure_ValueVector(valueVector1);
                 semanticActionT4(cond, id, valueVector1);
+                codeGenerationT4(id);
             }
         }
         matchToken(";");
@@ -702,6 +707,28 @@ public class SyntacticAnalyzer {
     }
 
     /**
+     * se tipo do id = inteiro, escreve sword senao, escreve char. os tamanhos serao
+     * definidos na geracao T4
+     * 
+     * @param id
+     */
+    public void codeGenerationT1(Symbol id) {
+        try {
+            if (id.getSize() == 0) {
+                if (id.getType().equals("INTEGER")) {
+                    codeWriter.write("sword ?\n");
+                    nextAvailableMemoryPosition += 2;
+                } else if (id.getType().equals("CHAR")) {
+                    codeWriter.write("byte ?\n");
+                    nextAvailableMemoryPosition++;
+                }
+            }
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
+        }
+    }
+
+    /**
      * if(isNumero(num) == false){ ERRO }else{ valueVector.tam = num.lex }
      */
     public void semanticActionT2(Symbol value, Symbol valueVector) {
@@ -766,6 +793,24 @@ public class SyntacticAnalyzer {
         log("Semantic Action T4 -> condition: " + condition + " id: " + id + " valueVector: " + valueVector);
     }
 
+    public void codeGenerationT4(Symbol id) {
+        try {
+            if (id.getType().equals("INTEGER")) {
+                if (id.getSize() > 0) {
+                    codeWriter.write("sword " + Integer.toString(id.getSize() * 2) + " DUP(?)\n");
+                    nextAvailableMemoryPosition += 2 * id.getSize();
+                }
+            } else if (id.getType().equals("CHAR")) {
+                if (id.getSize() > 0) {
+                    codeWriter.write("byte " + Integer.toString(id.getSize()) + "h DUP(?)\n");
+                    nextAvailableMemoryPosition += id.getSize();
+                }
+            }
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
+        }
+    }
+
     /**
      * if (cond) { if (!isNumerico(valor.lex)) { ERRO } else { id.tipo = inteiro } }
      * else { if (isNumerico(valor.lex)) { id.tipo = inteiro } else { id.tipo =
@@ -790,6 +835,14 @@ public class SyntacticAnalyzer {
             }
         }
         log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
+    }
+
+    public void codeGenerationT5() {
+        // try {
+
+        // } catch (IOException ioe) {
+        // throw new Error("problema com o arquivo de saida");
+        // }
     }
 
     public void matchToken(String tok) {
