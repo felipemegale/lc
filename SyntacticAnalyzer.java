@@ -37,7 +37,7 @@ public class SyntacticAnalyzer {
             }
             codeWriter.write("dseg ends                  ; fim seg dados\n\n");
             codeWriter.write("cseg segment public        ; inicio seg codigo\n");
-            codeWriter.write("ASSUME CS:cseg, DS:dseg\n");
+            codeWriter.write("assume CS:cseg, DS:dseg\n");
             codeWriter.write("strt:                      ; inicio do programa\n");
             // token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
             while (token.equals("id") || token.equals("for") || token.equals("if") || token.equals(";")
