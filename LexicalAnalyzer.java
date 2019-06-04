@@ -50,7 +50,7 @@ public class LexicalAnalyzer {
         int finalState = 2;
         int currentState = initialState;
         int status;
-        String c;
+        String c = "";
         String lexeme = "";
         Symbol token = null;
 
@@ -64,11 +64,11 @@ public class LexicalAnalyzer {
                     log("Char Lido: " + c.toString());
                     // log("Char Lido: " + status);
                     if (!isLexemeValid(c)) {
-                        throw new Error(this.linesRead + ":caractere invalido.");
+                        throwError(0, "");
                     }
                 } else {
                     if (currentState != 0) {
-                        throw new Error(this.linesRead + ":fim de arquivo nao esperado.");
+                        throwError(2 , "");
                     } else {
                         return semanticAction("EOF");
                     }
@@ -112,7 +112,7 @@ public class LexicalAnalyzer {
                     } else if (c.matches("\\n")) {
                         linesRead++;
                     } else if (!c.matches("[\\r\\t\\s]")) {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + c + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 1:
@@ -133,7 +133,7 @@ public class LexicalAnalyzer {
                         lexeme += c;
                         currentState = 1;
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 4:
@@ -144,7 +144,7 @@ public class LexicalAnalyzer {
                         lexeme += c;
                         currentState = 5;
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 5:
@@ -154,7 +154,7 @@ public class LexicalAnalyzer {
                         token = semanticActionForConstants(lexeme, "constant");
                         token.setType("CHAR");
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 6:
@@ -176,7 +176,7 @@ public class LexicalAnalyzer {
                         lexeme += c;
                         currentState = 8;
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 8:
@@ -186,7 +186,7 @@ public class LexicalAnalyzer {
                         token = semanticActionForConstants(lexeme, "constant");
                         token.setType("CHAR");
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 case 9:
@@ -256,7 +256,7 @@ public class LexicalAnalyzer {
                         lexeme += c;
                         currentState = 15;
                     } else {
-                        throw new Error(this.linesRead + ":lexema nao identificado [" + (lexeme + c) + "]");
+                        throwError(1, (lexeme + c));
                     }
                     break;
                 default:
@@ -311,6 +311,32 @@ public class LexicalAnalyzer {
 
     public int getLinesRead() {
         return this.linesRead;
+    }
+
+    public void throwError(int errorCode, String lex) {
+        switch (errorCode) {
+        case 0:
+            throw new Error(this.linesRead + ":caractere invalido.");
+        case 1:
+            throw new Error(this.linesRead + ":lexema nao identificado [" + lex + "].");
+        case 2:
+            throw new Error(this.linesRead + ":fim de arquivo nao esperado.");
+        case 3:
+            throw new Error(this.linesRead + ":token nao esperado [" + lex + "].");
+        case 4:
+            throw new Error(this.linesRead + ":fim de arquivo não esperado.");
+        case 5:
+            throw new Error(this.linesRead + ":identificador nao declarado [" + lex + "].");
+        case 6:
+            throw new Error(this.linesRead + ":identificador ja declarado [" + lex + "].");
+        case 7:
+            throw new Error(
+                    this.linesRead + ":classe de identificador incompatível [" + lex + "].");
+        case 8:
+            throw new Error(this.linesRead + ":tipos incompatíveis.");
+        case 9:
+            throw new Error(this.linesRead + ":tamanho do vetor excede o máximo permitido.");
+        }
     }
 
 }

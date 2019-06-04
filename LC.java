@@ -3,9 +3,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Pontificia Universidade Catolica de Minas Gerais
- * Intituto de Ciencias Exatas e Informatica - Departamento de Ciencia da Computacao
- * Disciplina de Compiladores - L Language Compiler
+ * Pontificia Universidade Catolica de Minas Gerais Intituto de Ciencias Exatas
+ * e Informatica - Departamento de Ciencia da Computacao Disciplina de
+ * Compiladores - L Language Compiler
+ * 
  * @author: Alexandre Abreu, Felipe Megale, João Castro
  */
 
@@ -31,9 +32,9 @@ public class LC {
             } catch (IOException ioe) {
                 throw new Error("problema de arquivo");
             }
-        }else{
-            throw new Error("numero de parametros invalido.");
+            }
+        } catch (Error e) {
+            System.out.println(e.getMessage());
         }
     }
 }
-

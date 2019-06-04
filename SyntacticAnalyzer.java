@@ -224,32 +224,20 @@ public class SyntacticAnalyzer {
         Symbol id;
         boolean cond = false;
         id = this.lexicalRegister;
-        if (id.get_Class().equals("")) {
-            error = new Error(
-                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        } else if (id.get_Class().equals("CLASSE-CONST")) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
-                    + id.getLexeme() + "].");
-        }
         matchToken("id");
+        semanticActionU2(id);
         if (token.equals("[")) {
             cond = true;
             matchToken("[");
             Symbol exp = new Symbol(null, "exp");
             procedure_Expression(exp);
-            if (!exp.getType().equals("INTEGER") || id.getSize() > 0) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }
+            semanticActionT19(cond, id, exp);
             matchToken("]");
         }
         matchToken("=");
         Symbol exp1 = new Symbol(null, "exp1");
         procedure_Expression(exp1);
-        if (!exp1.getType().equals(id.getType())) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        } else if (id.getType().equals("INTEGER") && id.getSize() > 0) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        }
+        semanticActionT20(cond, id, exp1);
         matchToken(";");
     }
 
@@ -261,33 +249,24 @@ public class SyntacticAnalyzer {
      */
     public void procedure_Loop() {
         boolean cond = false;
-        Symbol id;
+        Symbol id, value;
         matchToken("for");
         id = this.lexicalRegister;
-        if (id.get_Class().equals("")) {
-            error = new Error(
-                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        } else if (id.get_Class().equals("CLASSE-CONST")) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
-                    + id.getLexeme() + "].");
-        }
         matchToken("id");
+        semanticActionU2(id);
         matchToken("=");
         Symbol exp = new Symbol(null, "exp");
         procedure_Expression(exp);
-        if (!exp.getType().equals("INTEGER") || !id.getType().equals("INTEGER") || id.getSize() > 0) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        }
+        semanticActionT17(id, exp);
         matchToken("to");
         Symbol exp1 = new Symbol(null, "exp");
         procedure_Expression(exp1);
         if (token.equals("step")) {
             cond = true;
             matchToken("step");
-            if (!this.lexicalRegister.getType().equals("INTEGER")) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }
+            value = this.lexicalRegister;
             matchToken("num");
+            semanticActionT18(value);
         }
         matchToken("do");
         if (token.equals("{")) {
@@ -312,9 +291,7 @@ public class SyntacticAnalyzer {
         matchToken("if");
         Symbol exp = new Symbol(null, "exp");
         procedure_Expression(exp);
-        if (!exp.getType().equals("LOGICAL")) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        }
+        semanticActionT16(exp);
         matchToken("then");
         if (token.equals("{")) {
             matchToken("{");
@@ -372,14 +349,8 @@ public class SyntacticAnalyzer {
         matchToken("readln");
         matchToken("(");
         id = this.lexicalRegister;
-        if (id.get_Class().equals("")) {
-            error = new Error(
-                    this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-        } else if (id.get_Class().equals("CLASSE-CONST")) {
-            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível ["
-                    + id.getLexeme() + "].");
-        }
         matchToken("id");
+        semanticActionU2(id);
         matchToken(")");
         matchToken(";");
     }
@@ -410,72 +381,43 @@ public class SyntacticAnalyzer {
         boolean condEquals = false, condDiff = false, condLess = false, condGreater = false, condLessEquals = false;
         Symbol expS = new Symbol(null, "expS");
         procedure_Expression_S(expS);
-        exp.setType(expS.getType());
-        if (token.equals("=")) {
-            condEquals = true;
-            condLess = condGreater = condLessEquals = condDiff = false;
-            matchToken("=");
+        semanticActionT9(exp, expS);
+        if (token.equals("=") || token.equals("<>>") || token.equals("<") || token.equals(">") || token.equals("<=")
+                || token.equals(">=")) {
             Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                exp.setType("LOGICAL");
+            if (token.equals("=")) {
+                condEquals = true;
+                condLess = condGreater = condLessEquals = condDiff = false;
+                matchToken("=");
+                procedure_Expression_S(expS1);
+            } else if (token.equals("<>")) {
+                condDiff = true;
+                condLess = condGreater = condLessEquals = condEquals = false;
+                matchToken("<>");
+                procedure_Expression_S(expS1);
+            } else if (token.equals("<")) {
+                condLess = true;
+                condEquals = condGreater = condLessEquals = condDiff = false;
+                matchToken("<");
+                procedure_Expression_S(expS1);
+            } else if (token.equals(">")) {
+                condGreater = true;
+                condLess = condEquals = condLessEquals = condDiff = false;
+                matchToken(">");
+                procedure_Expression_S(expS1);
+            } else if (token.equals("<=")) {
+                condLessEquals = true;
+                condLess = condGreater = condEquals = condDiff = false;
+                matchToken("<=");
+                procedure_Expression_S(expS1);
+            } else if (token.equals(">=")) {
+                condLess = condGreater = condLessEquals = condDiff = condEquals = false;
+                matchToken(">=");
+                procedure_Expression_S(expS1);
             }
-        } else if (token.equals("<>")) {
-            condDiff = true;
-            condLess = condGreater = condLessEquals = condEquals = false;
-            matchToken("<>");
-            Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                exp.setType("LOGICAL");
-            }
-        } else if (token.equals("<")) {
-            condLess = true;
-            condEquals = condGreater = condLessEquals = condDiff = false;
-            matchToken("<");
-            Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                exp.setType("LOGICAL");
-            }
-        } else if (token.equals(">")) {
-            condGreater = true;
-            condLess = condEquals = condLessEquals = condDiff = false;
-            matchToken(">");
-            Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            log(" Tipos : " + exp);
-            log(" Tipos : " + expS1);
-            if (!exp.getType().equals(expS1.getType())) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                exp.setType("LOGICAL");
-            }
-        } else if (token.equals("<=")) {
-            condLessEquals = true;
-            condLess = condGreater = condEquals = condDiff = false;
-            matchToken("<=");
-            Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType()))
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-        } else if (token.equals(">=")) {
-            condLess = condGreater = condLessEquals = condDiff = condEquals = false;
-            matchToken(">=");
-            Symbol expS1 = new Symbol(null, "expS1");
-            procedure_Expression_S(expS1);
-            if (!exp.getType().equals(expS1.getType())) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                exp.setType("LOGICAL");
-            }
+            semanticActionT15(condEquals, condDiff, condLess, condGreater, condLessEquals, exp, expS);
         }
+
     }
 
     /**
@@ -495,28 +437,7 @@ public class SyntacticAnalyzer {
         }
         Symbol term = new Symbol(null, "term");
         procedure_Term(term);
-        if (condSoma) {
-            if (!term.getType().equals("INTEGER")) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else if (term.getSize() > 0) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                expS.setSize(term.getSize());
-                expS.setType("INTEGER");
-            }
-        } else if (condSub) {
-            if (!term.getType().equals("INTEGER")) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else if (term.getSize() > 0) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                expS.setSize(term.getSize());
-                expS.setType("INTEGER");
-            }
-        } else {
-            expS.setSize(term.getSize());
-            expS.setType(term.getType());
-        }
+        semanticActionT13(condSoma, condSub, expS, term);
         while (token.equals("+") || token.equals("-") || token.equals("or")) {
             if (token.equals("+")) {
                 condSoma = true;
@@ -531,29 +452,7 @@ public class SyntacticAnalyzer {
             }
             Symbol term1 = new Symbol(null, "term1");
             procedure_Term(term1);
-            if (condSoma) {
-                if (!term1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else if (term1.getSize() > 0) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    expS.setSize(term1.getSize());
-                    expS.setType("INTEGER");
-                }
-            } else if (condSub) {
-                if (!term1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else if (term1.getSize() > 0) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    expS.setSize(term1.getSize());
-                    expS.setType("INTEGER");
-                }
-            } else {
-                if (!term1.getType().equals("LOGICAL") || !expS.getType().equals("LOGICAL")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                }
-            }
+            semanticActionT14(condSoma, condSub, term1, expS);
         }
     }
 
@@ -566,57 +465,26 @@ public class SyntacticAnalyzer {
         boolean condMult = false, condDiv = false, condMod = false;
         Symbol factor = new Symbol(null, "factor");
         procedure_Factor(factor);
-        term.setType(factor.getType());
+        semanticActionT11(term, factor);
         while (token.equals("*") || token.equals("/") || token.equals("%") || token.equals("and")) {
             if (token.equals("*")) {
                 condMult = true;
-                condDiv = false;
-                condMod = false;
+                condDiv = condMod = false;
                 matchToken("*");
             } else if (token.equals("/")) {
-                condMult = false;
                 condDiv = true;
-                condMod = false;
+                condMult = condMod = false;
                 matchToken("/");
             } else if (token.equals("%")) {
-                condMult = false;
-                condDiv = false;
                 condMod = true;
+                condMult = condDiv = false;
                 matchToken("%");
             } else {
                 matchToken("and");
             }
             Symbol factor1 = new Symbol(null, "factor1");
             procedure_Factor(factor1);
-            if (condMult) {
-                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    term.setType("INTEGER");
-                }
-            } else if (condDiv) {
-                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    term.setType("INTEGER");
-                }
-            } else if (condMod) {
-                if (!term.getType().equals("INTEGER") || !factor1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else if (term.getSize() > 0 || factor1.getSize() > 0) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    term.setType("INTEGER");
-                }
-            } else {
-                if (!term.getType().equals("LOGICAL") || !factor1.getType().equals("LOGICAL")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                }
-            }
+            semanticActionT12(condMult, condDiv, condMod, term, factor1);
         }
     }
 
@@ -628,46 +496,34 @@ public class SyntacticAnalyzer {
      */
     public void procedure_Factor(Symbol factor) {
         boolean cond = false;
-        Symbol id;
+        Symbol id, value, exp1 = null;
         if (token.equals("not")) {
             matchToken("not");
             Symbol factor1 = new Symbol(null, "factor1");
             procedure_Factor(factor1);
-            if (!factor1.getType().equals("LOGICAL")) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            }
+            semanticActionT10(factor1);
         } else if (token.equals("(")) {
             matchToken("(");
             Symbol exp = new Symbol(null, "exp");
             procedure_Expression(exp);
-            factor.setType(exp.getType());
+            semanticActionT8(factor, exp);
             matchToken(")");
         } else if (token.equals("constant")) {
-            factor.setType(this.lexicalRegister.getType());
+            value = this.lexicalRegister;
             matchToken("constant");
+            semanticActionT7(factor, value);
         } else {
             id = this.lexicalRegister;
-            if (id.get_Class().equals("")) {
-                error = new Error(
-                        this.lexicalAnalyzer.getLinesRead() + ":identificador não declarado [" + id.getLexeme() + "].");
-            }
             matchToken("id");
+            semanticActionU1(id);
             if (token.equals("[")) {
                 cond = true;
                 matchToken("[");
-                Symbol exp1 = new Symbol(null, "exp1");
+                exp1 = new Symbol(null, "exp1");
                 procedure_Expression(exp1);
-                if (!exp1.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    factor.setType(id.getType());
-                }
                 matchToken("]");
             }
-            if (cond == false) {
-                factor.setType(id.getType());
-                factor.setSize(id.getSize());
-            }
+            semanticActionT6(cond, factor, id, exp1);
         }
     }
 
@@ -678,22 +534,29 @@ public class SyntacticAnalyzer {
      */
     public void semanticActionU1(Symbol id) {
         if (!(id.get_Class()).equals("")) {
-            throw new Error(
-                    this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
+            throwError(6, id.getLexeme());
         }
     }
 
     /////////////////////// UNICIDADE
     /**
-     * if id.classe = vazio, ERRO else if id.classe = classe-const, ERRO
+     * if(id.classe = vazio){ ERRO }else if(id.classe == "CLASSE-CONST"){ ERRO }
      */
-    public void semanticActionU2() {
+    public void semanticActionU2(Symbol id) {
+        if (id.get_Class().equals("")) {
+            throwError(5, id.getLexeme());
+        } else if (id.get_Class().equals("CLASSE-CONST")) {
+            throwError(7, id.getLexeme());
+        }
     }
 
     /**
      * if id.classe = vazio, ERRO
      */
-    public void semanticActionU3() {
+    public void semanticActionU3(Symbol id) {
+        if (id.get_Class().equals("")) {
+            throwError(5, id.getLexeme());
+        }
     }
 
     /////////////////// TIPOS
@@ -704,10 +567,10 @@ public class SyntacticAnalyzer {
     public void semanticActionT1(boolean condition, Symbol id) {
         if (condition) {
             id.setType("INTEGER");
-            id.set_Class("CLASSE_VAR");
+            id.set_Class("CLASSE-VAR");
         } else {
             id.setType("CHAR");
-            id.set_Class("CLASSE_VAR");
+            id.set_Class("CLASSE-VAR");
         }
         id = updateLexicalRegister(id);
         log("Semantic Action T1 -> condition: " + condition + " id: " + id);
@@ -747,7 +610,6 @@ public class SyntacticAnalyzer {
             throwError(8, "");
         } else {
             valueVector.setSize(Integer.parseInt(value.getLexeme()));
-            valueVector.setType("INTEGER");
         }
         log("Semantic Action T2 -> value: " + value + " valueVector: " + valueVector);
     }
@@ -828,7 +690,7 @@ public class SyntacticAnalyzer {
     public void semanticActionT5(boolean condition, Symbol id, Symbol value) {
         if (condition) {
             if (!value.getType().equals("INTEGER")) {
-                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                throwError(8, "");
             } else {
                 id.setType("INTEGER");
                 id.set_Class("CLASSE-CONST");
@@ -836,7 +698,7 @@ public class SyntacticAnalyzer {
             }
         } else {
             if (value.getType().equals("STRING")) {
-                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+                throwError(8, "");
             } else {
                 id.setType(value.getType());
                 id.set_Class("CLASSE-CONST");
@@ -845,6 +707,7 @@ public class SyntacticAnalyzer {
         }
         log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
     }
+
 
     public void codeGenerationT5(Symbol id, Symbol value) {
         try {
@@ -863,6 +726,285 @@ public class SyntacticAnalyzer {
             }
         } catch (IOException ioe) {
             throw new Error("problema com o arquivo de saida");
+
+    /**
+     * if(cond){ if(Expressão.tipo != inteiro){ ERRO }else{ Fator.tipo = id.tipo
+     * Fator.tam = 0 } }else{ Fator.tipo = id.tipo Fator.tam = id.tam }
+     */
+    public void semanticActionT6(boolean condition, Symbol factor, Symbol id, Symbol exp) {
+        if (condition) {
+            if (!exp.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else {
+                factor.setType(id.getType());
+                factor.setSize(0);
+            }
+        } else {
+            factor.setType(id.getType());
+            factor.setSize(id.getSize());
+        }
+    }
+
+    /**
+     * Fator.tipo = getTipo(valor.lex)
+     */
+    public void semanticActionT7(Symbol factor, Symbol value) {
+        factor.setType(value.getType());
+    }
+
+    /**
+     * Fator.tipo = Expressão.tipo
+     */
+    public void semanticActionT8(Symbol factor, Symbol exp) {
+        factor.setType(exp.getType());
+    }
+
+    /**
+     * Expressão.tipo = ExpressãoS.tipo
+     */
+    public void semanticActionT9(Symbol exp, Symbol expS) {
+        exp.setType(expS.getType());
+    }
+
+    /**
+     * if (Fator1.tipo != logico) { ERRO }
+     */
+    public void semanticActionT10(Symbol factor) {
+        if (!factor.getType().equals("LOGICAL")) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * Termo.tipo = Fator.tipo
+     */
+    public void semanticActionT11(Symbol term, Symbol factor) {
+        term.setType(factor.getType());
+    }
+
+    /**
+     * if (condMult){ if(Termo.tipo != inteiro || Fator¹.tipo != inteiro){ ERRO
+     * }else if(Termo.tam > 0 || Fator¹.tam > 0){ ERRO } else { Termo.tipo = inteiro
+     * } }else if(condDiv){ if(Termo.tipo != inteiro || Fator¹.tipo != inteiro){
+     * ERRO }else if(Termo.tam > 0 || Fator¹.tam > 0){ ERRO } else { Termo.tipo =
+     * inteiro } }else if(condMod){ if(Termo.tipo != inteiro || Fator¹.tipo !=
+     * inteiro){ ERRO }else if(Termo.tam > 0 || Fator¹.tam > 0){ ERRO } else {
+     * Termo.tipo = inteiro } }else{ if (Termo.tipo != logico || Fator¹.tipo !=
+     * logico){ ERRO } }
+     */
+    public void semanticActionT12(boolean condMult, boolean condDiv, boolean condMod, Symbol term, Symbol factor) {
+        if (condMult) {
+            if (!term.getType().equals("INTEGER") || factor.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0 || factor.getSize() > 0) {
+                throwError(8, "");
+            }
+        } else if (condDiv) {
+            if (!term.getType().equals("INTEGER") || factor.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0 || factor.getSize() > 0) {
+                throwError(8, "");
+            }
+        } else if (condMod) {
+            if (!term.getType().equals("INTEGER") || factor.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0 || factor.getSize() > 0) {
+                throwError(8, "");
+            }
+        } else if (!term.getType().equals("LOGICAL") || !factor.getType().equals("LOGICAL")) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * 
+     * if(condSoma || condSub){ if(termo.tipo != inteiro){ ERRO }else if(termo.tam >
+     * 0){ ERRO }else{ ExpressãoS.tam = Termo.tam ExpressãoS.tipo = inteiro } }else{
+     * ExpressãoS.tam = termo.tam ExpressaoS.tipo = termo.tipo }
+     */
+    public void semanticActionT13(boolean condSoma, boolean condSub, Symbol expS, Symbol term) {
+        if (condSoma) {
+            if (!term.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0) {
+                throwError(8, "");
+            } else {
+                expS.setType("INTEGER");
+            }
+        } else if (condSub) {
+            if (!term.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0) {
+                throwError(8, "");
+            } else {
+                expS.setType("INTEGER");
+            }
+        } else {
+            expS.setSize(term.getSize());
+            expS.setType(term.getType());
+        }
+    }
+
+    /**
+     * if(condSoma){ if(term.tipo != inteiro){ ERRO }else if(term.tam > 0){ ERRO
+     * }else{ ExpressaoS.tipo = inteiro } }else if(condSub){ if(term.tipo !=
+     * inteiro){ ERRO }else if(term.tam > 0){ ERRO }else{ ExpressaoS.tipo = inteiro
+     * } }else if(term.tipo != logico || ExpressaoS.tipo != logico){ ERRO }
+     */
+    public void semanticActionT14(boolean condSoma, boolean condSub, Symbol term, Symbol expS) {
+        if (condSoma) {
+            if (!term.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0) {
+                throwError(8, "");
+            } else {
+                expS.setType("INTEGER");
+            }
+        } else if (condSub) {
+            if (!term.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (term.getSize() > 0) {
+                throwError(8, "");
+            } else {
+                expS.setType("INTEGER");
+            }
+        } else if (!term.getType().equals("LOGICAL")) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * 
+     * if (condEquals){ if(expS.tipo != exp.tipo){ ERRO }else if(expS.tipo ==
+     * inteiro){ if(expS.tam > 0 || exp.tam > 0){ ERRO } } }else if(condDiff){
+     * if(expS.tipo == inteiro && exp.tipo == inteiro){ if(expS.tam > 0 || exp.tam >
+     * 0){ ERRO } }else{ ERRO } }else if(condLess){ if(expS.tipo == inteiro &&
+     * exp.tipo == inteiro){ if(expS.tam > 0 || exp.tam > 0){ ERRO } }else{ ERRO }
+     * }else if(condGreater){ if(expS.tipo == inteiro && exp.tipo == inteiro){
+     * if(expS.tam > 0 || exp.tam > 0){ ERRO } }else{ ERRO } }else
+     * if(condLessEquals){ if(expS.tipo == inteiro && exp.tipo == inteiro){
+     * if(expS.tam > 0 || exp.tam > 0){ ERRO } }else{ ERRO } }else{ if(expS.tipo ==
+     * inteiro && exp.tipo == inteiro){ if(expS.tam > 0 || exp.tam > 0){ ERRO }
+     * }else{ ERRO } } exp.tipo = logico
+     */
+    public void semanticActionT15(boolean condEquals, boolean condDiff, boolean condLess, boolean condGreater,
+            boolean condLessEquals, Symbol exp, Symbol expS) {
+        if (condEquals) {
+            if (!expS.getType().equals(exp.getType())) {
+                throwError(8, "");
+            } else if (expS.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            }
+        } else if (condDiff) {
+            if (expS.getType().equals("INTEGER") && exp.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            } else {
+                throwError(8, "");
+            }
+        } else if (condLess) {
+            if (expS.getType().equals("INTEGER") && exp.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            } else {
+                throwError(8, "");
+            }
+        } else if (condGreater) {
+            if (expS.getType().equals("INTEGER") && exp.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            } else {
+                throwError(8, "");
+            }
+        } else if (condLessEquals) {
+            if (expS.getType().equals("INTEGER") && exp.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            } else {
+                throwError(8, "");
+            }
+        } else {
+            if (expS.getType().equals("INTEGER") && exp.getType().equals("INTEGER")) {
+                if (expS.getSize() > 0 || exp.getSize() > 0) {
+                    throwError(8, "");
+                }
+            } else {
+                throwError(8, "");
+            }
+        }
+        exp.setType("LOGICAL");
+    }
+
+    /**
+     * if(exp.tipo != logico) { ERRO }
+     */
+    public void semanticActionT16(Symbol exp) {
+        if (!exp.getType().equals("LOGICAL")) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * if(id.tipo != inteiro || exp.tipo != inteiro){ ERRO }else if(id.tam > 0){
+     * ERRO }
+     */
+    public void semanticActionT17(Symbol id, Symbol exp) {
+        if (!id.getType().equals("INTEGER") || !exp.getType().equals("INTEGER")) {
+            throwError(8, "");
+        } else if (id.getSize() > 0) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * if(valor.tipo != inteiro) { ERRO }
+     */
+    public void semanticActionT18(Symbol value) {
+        if (!value.getType().equals("INTEGER")) {
+            throwError(8, "");
+        }
+    }
+
+    /**
+     * if(cond){ if(exp.tipo != inteiro){ ERRO }else if (exp.tam > 0){ ERRO }else if
+     * (id.tam = 0){ ERRO } }
+     */
+    public void semanticActionT19(boolean cond, Symbol id, Symbol exp) {
+        if (cond) {
+            if (!exp.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else if (exp.getSize() > 0) {
+                throwError(8, "");
+            } else if (id.getSize() == 0) {
+                throwError(8, "");
+            }
+        }
+    }
+
+    /**
+     * if(exp.tipo != id.tipo){ ERRO }else if(exp.tipo == inteiro && id.tipo ==
+     * inteiro){ if(exp.tam > 0){ ERRO }else if(id.tam > 0 && cond == false){ ERRO }
+     * }else{ if(exp.tam + 1 > id.tam){ ERRO } }
+     */
+    public void semanticActionT20(boolean cond, Symbol id, Symbol exp) {
+        if(!exp.getType().equals(id.getType())){
+            throwError(8, "");
+        }else if(exp.getType().equals("INTEGER") && id.getType().equals("INTEGER")){
+            if(exp.getSize() > 0){
+                throwError(8, "");
+            }else if(id.getSize() > 0 && cond == false){
+                throwError(8, "");
+            }
+        }else{
+            if(exp.getSize() + 1 > id.getSize()){
+                throwError(9, "");
+            }
         }
     }
 
