@@ -18,17 +18,18 @@ public class LC {
             outputFileName = args[1];
             try {
                 codeWriter = new FileWriter(outputFileName);
+                if(sourceFileName.endsWith(".l") && outputFileName.endsWith(".asm")){
+                    File sourceFile = new File(sourceFileName);
+                    LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
+                    SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer, codeWriter);
+                    syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
+                    syntacticAnalyzer.procedure_S();
+                }else{
+                    codeWriter.close();
+                    throw new Error("parametros invalidos.");
+                }
             } catch (IOException ioe) {
-                throw new Error("problema com o arquivo de saida");
-            }
-            if(sourceFileName.endsWith(".l") && outputFileName.endsWith(".asm")){
-                File sourceFile = new File(sourceFileName);
-                LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceFile);
-                SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer, codeWriter);
-                syntacticAnalyzer.token = lexicalAnalyzer.lexicalAnalysis().getLexeme();
-                syntacticAnalyzer.procedure_S();
-            }else{
-                throw new Error("parametros invalidos.");
+                throw new Error("problema de arquivo");
             }
         }else{
             throw new Error("numero de parametros invalido.");
