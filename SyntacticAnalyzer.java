@@ -39,13 +39,15 @@ public class SyntacticAnalyzer {
             codeWriter.write("cseg segment public        ; inicio seg codigo\n");
             codeWriter.write("assume CS:cseg, DS:dseg\n");
             codeWriter.write("strt:                      ; inicio do programa\n");
+            codeWriter.write("mov ax, dseg\n");
+            codeWriter.write("mov ds, ax\n");
             // token.matches("(id)|(for)|(if)|(;)|(readln)|(write | writeln)|(writeln)")
             while (token.equals("id") || token.equals("for") || token.equals("if") || token.equals(";")
                     || token.equals("readln") || token.equals("write") || token.equals("writeln")) {
                 procedure_Command();
             }
             matchToken("EOF");
-            codeWriter.write("mov ah, 4Ch\n");
+            codeWriter.write("\nmov ah, 4Ch\n");
             codeWriter.write("int 21h\n");
             codeWriter.write("cseg ends                  ; fim seg codigo\n");
             codeWriter.write("end strt                   ; fim programa");
