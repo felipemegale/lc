@@ -83,7 +83,7 @@ public class LexicalAnalyzer {
                     } else if (c.matches("\\.|_")) { // Testing . and _ to begin of an id
                         lexeme += c;
                         currentState = 3;
-                    } else if (c.matches("[(|)|;|,|\\+|=|%|{|}|\\[|\\]]")) { // Testing single tokens
+                    } else if (c.matches("[(|)|;|,|\\-|\\+|=|%|{|}|\\[|\\]]")) { // Testing single tokens
                         lexeme += c;
                         currentState = 2;
                         token = semanticAction(lexeme);

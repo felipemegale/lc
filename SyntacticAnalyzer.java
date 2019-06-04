@@ -70,7 +70,7 @@ public class SyntacticAnalyzer {
             codeWriter.write("dseg segment public        ; inicio seg dados\n");
             codeWriter.write("byte 4000h DUP(?)          ; temporarios\n");
             boolean cond = false;
-            Symbol id;
+            Symbol id, value;
             log(">> SYN (Statemants)");
             if (token.equals("var")) {
                 matchToken("var");
@@ -83,38 +83,20 @@ public class SyntacticAnalyzer {
             } else if (token.equals("const")) {
                 matchToken("const");
                 id = this.lexicalRegister;
-                if ((id.get_Class()).equals("")) { // Teste de Unicidade
-                    id.set_Class("CLASSE-CONST");
-                    id = updateLexicalRegister(id);
-                } else {
-                    error = new Error(
-                            this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
-                }
                 matchToken("id");
+                semanticActionU1(id); // Acao Semantica Unicidade 1
                 matchToken("=");
-                cond = false;
                 if (token.equals("-")) {
                     cond = true;
                     matchToken("-");
-                    // Valor
-                    if (cond) { // T5
-                        if (!this.lexicalRegister.getType().equals("INTEGER")) {
-                            error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                        } else {
-                            id.setType("INTEGER");
-                            id = updateLexicalRegister(id);
-                        }
-                    }
+                    value = this.lexicalRegister;
                     matchToken("constant");
+                    semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = true
                     matchToken(";");
                 } else {
-                    if (this.lexicalRegister.getType().equals("STRING")) {
-                        error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                    } else {
-                        id.setType(this.lexicalRegister.getType());
-                        id = updateLexicalRegister(id);
-                    }
+                    value = this.lexicalRegister;
                     matchToken("constant");
+                    semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = false
                     matchToken(";");
                 }
             }
@@ -133,77 +115,37 @@ public class SyntacticAnalyzer {
      */
     public void procedure__ListIDs(Symbol listIds) {
         boolean cond = false;
+        boolean condInt = false;
         Symbol id, id1;
         if (token.equals("integer")) {
-            cond = true;
+            condInt = true;
             matchToken("integer");
         } else {
             matchToken("char");
         }
         id = this.lexicalRegister;
-        if ((id.get_Class()).equals("")) {// <U1> <T1>
-            id.set_Class("CLASSE-VAR");
-            if (cond)
-                id.setType("INTEGER");
-            else
-                id.setType("CHAR");
-            id = updateLexicalRegister(id);
-        } else {
-            error = new Error(
-                    this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
-        }
         matchToken("id");
-        Symbol valVec = new Symbol(null, "valVec");
-        procedure_ValueVector(valVec);
-        if (valVec.getSize() > 0) {
-            if (id.getType().equals("INTEGER")) {
-                if (valVec.getSize() > 2000) {
-                    error = new Error(
-                            this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
-                } else {
-                    id.setSize(valVec.getSize());
-                    id = updateLexicalRegister(id);
-                }
-            } else if (valVec.getSize() > 4000) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
-            } else {
-                id.setSize(valVec.getSize());
-                id = updateLexicalRegister(id);
-            }
+        semanticActionU1(id); // Acao Semantica de Unicidade 1
+        semanticActionT1(condInt, id); // Acao Semantica de Tipos 1
+        cond = false;
+        if (token.equals("[") || token.equals("=")) {
+            cond = true;
+            Symbol valueVector = new Symbol(null, "valueVector");
+            procedure_ValueVector(valueVector);
+            semanticActionT4(cond, id, valueVector);
         }
         while (token.equals(",")) {
             matchToken(",");
             id1 = this.lexicalRegister;
-            if ((id1.get_Class()).equals("")) {
-                id1.set_Class("CLASSE-VAR");
-                if (cond)
-                    id1.setType("INTEGER");
-                else
-                    id1.setType("CHAR");
-                id1 = updateLexicalRegister(id1);
-            } else {
-                error = new Error(
-                        this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id1.getLexeme() + "].");
-            }
             matchToken("id");
-            Symbol valVec1 = new Symbol(null, "valVec1");
-            procedure_ValueVector(valVec1);
-            if (valVec1.getSize() > 0) {
-                if (id1.getType().equals("INTEGER")) {
-                    if (valVec1.getSize() > 2000) {
-                        error = new Error(
-                                this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
-                    } else {
-                        id1.setSize(valVec1.getSize());
-                        id1 = updateLexicalRegister(id1);
-                    }
-                } else if (valVec1.getSize() > 4000) {
-                    error = new Error(
-                            this.lexicalAnalyzer.getLinesRead() + ":tamanho de vetor excede o máximo permitido.");
-                } else {
-                    id1.setSize(valVec1.getSize());
-                    id1 = updateLexicalRegister(id1);
-                }
+            semanticActionU1(id1);
+            semanticActionT1(condInt, id1);
+            cond = false;
+            if (token.equals("[") || token.equals("=")) {
+                cond = true;
+                Symbol valueVector1 = new Symbol(null, "valueVector1");
+                procedure_ValueVector(valueVector1);
+                semanticActionT4(cond, id, valueVector1);
             }
         }
         matchToken(";");
@@ -214,32 +156,27 @@ public class SyntacticAnalyzer {
      * With Semantic Actions ValVet -> "[" "tam" <T2> "]" | "=" <C1>[<C2> "-" ]
      * "valor"<T3>
      */
-    public void procedure_ValueVector(Symbol valVec) {
+    public void procedure_ValueVector(Symbol valueVector) {
         boolean cond = false;
+        Symbol value;
         if (token.equals("[")) {
             matchToken("[");
-            if (!this.lexicalRegister.getType().equals("INTEGER")) {
-                error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-            } else {
-                valVec.setSize(Integer.parseInt(this.lexicalRegister.getLexeme()));
-            }
+            value = this.lexicalRegister;
             matchToken("constant");
+            semanticActionT2(value, valueVector);
             matchToken("]");
         } else if (token.equals("=")) {
             matchToken("=");
             if (token.equals("-")) {
                 cond = true;
                 matchToken("-");
-                if (!this.lexicalRegister.getType().equals("INTEGER")) {
-                    error = new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
-                } else {
-                    valVec.setType("INTEGER");
-                }
+                value = this.lexicalRegister;
                 matchToken("constant");
             } else {
-                valVec.setType(this.lexicalRegister.getType());
+                value = this.lexicalRegister;
                 matchToken("constant");
             }
+            semanticActionT3(cond, value, valueVector);
         }
     }
 
@@ -724,6 +661,137 @@ public class SyntacticAnalyzer {
         }
     }
 
+    ////////////////////////////////////////// Semantic Actions
+    ////////////////////////////////////////// ////////////////////////////////////////////////////////////////////////////
+    /**
+     * if id.classe != vazio, ERRO
+     */
+    public void semanticActionU1(Symbol id) {
+        if (!(id.get_Class()).equals("")) {
+            throw new Error(
+                    this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + id.getLexeme() + "].");
+        }
+    }
+
+    /////////////////////// UNICIDADE
+    /**
+     * if id.classe = vazio, ERRO else if id.classe = classe-const, ERRO
+     */
+    public void semanticActionU2() {
+    }
+
+    /**
+     * if id.classe = vazio, ERRO
+     */
+    public void semanticActionU3() {
+    }
+
+    /////////////////// TIPOS
+    /**
+     * if (cond){ id.tipo = inteiro } else { id.tipo = caractere } id.classe =
+     * "CLASSE-VAR"
+     */
+    public void semanticActionT1(boolean condition, Symbol id) {
+        if (condition) {
+            id.setType("INTEGER");
+        } else {
+            id.setType("CHAR");
+        }
+        id = updateLexicalRegister(id);
+        log("Semantic Action T1 -> condition: " + condition + " id: " + id);
+    }
+
+    /**
+     * if(isNumero(num) == false){ ERRO }else{ valueVector.tam = num.lex }
+     */
+    public void semanticActionT2(Symbol value, Symbol valueVector) {
+        if (!value.getType().equals("INTEGER")) {
+            throwError(8, "");
+        } else {
+            valueVector.setSize(Integer.parseInt(value.getLexeme()));
+            valueVector.setType("INTEGER");
+        }
+        log("Semantic Action T2 -> value: " + value + " valueVector: " + valueVector);
+    }
+
+    /**
+     * if(cond){ if(isNumero(valor.lex) == false){ ERRO }else{ valueVector.tipo =
+     * inteiro; } }else{ if(isNumero(valor.lex) == false){ valueVector.tipo =
+     * caractere; }else{ valueVector.tipo = inteiro; } }
+     */
+    public void semanticActionT3(boolean condition, Symbol value, Symbol valueVector) {
+        if (condition) {
+            if (!value.getType().equals("INTEGER")) {
+                throwError(8, "");
+            } else {
+                valueVector.setType("INTEGER");
+            }
+        } else {
+            valueVector.setType(value.getType());
+        }
+        log("Semantic Action T3 -> condition: " + condition + " value: " + value + " valueVector: " + valueVector);
+    }
+
+    /**
+     * if (valueVector.tam > 0){ if(id.tipo == inteiro){ if(valueVector.tam > 2000){
+     * ERRO }else if(valueVector.tipo != id.tipo){ ERRO }else{ id.tam =
+     * valueVector.tam } } else{ if(valueVector.tam > 4000){ ERRO }else
+     * if(valueVector.tipo != id.tipo){ ERRO }else{ id.tam = valueVector.tam } }
+     * }else if(valueVector.tipo != id.tipo){ ERRO }
+     */
+    public void semanticActionT4(boolean condition, Symbol id, Symbol valueVector) {
+        if (valueVector.getSize() > 0) {
+            if (id.getType().equals("INTEGER")) {
+                if (valueVector.getSize() > 2000) {
+                    throwError(9, "");
+                } else if (!valueVector.getType().equals(id.getType())) {
+                    throwError(8, "");
+                } else {
+                    id.setSize(valueVector.getSize());
+                    id = updateLexicalRegister(id);
+                }
+            } else {
+                if (valueVector.getSize() > 4000) {
+                    throwError(9, "");
+                } else if (!valueVector.getType().equals(id.getType())) {
+                    throwError(8, "");
+                } else {
+                    id.setSize(valueVector.getSize());
+                    id = updateLexicalRegister(id);
+                }
+            }
+        } else if (!valueVector.getType().equals(id.getType())) {
+            throwError(8, "");
+        }
+        log("Semantic Action T4 -> condition: " + condition + " id: " + id + " valueVector: " + valueVector);
+    }
+
+    /**
+     * if (cond) { if (!isNumerico(valor.lex)) { ERRO } else { id.tipo = inteiro } }
+     * else { if (isNumerico(valor.lex)) { id.tipo = inteiro } else { id.tipo =
+     * caractere } } id.classe = "classe-const"
+     */
+    public void semanticActionT5(boolean condition, Symbol id, Symbol value) {
+        if (condition) {
+            if (!value.getType().equals("INTEGER")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else {
+                id.setType("INTEGER");
+                id.setType("CLASSE-CONST");
+                id = updateLexicalRegister(id);
+            }
+        } else {
+            if (value.getType().equals("STRING")) {
+                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+            } else {
+                id.setType(value.getType());
+                id.setType("CLASSE-CONST");
+                id = updateLexicalRegister(id);
+            }
+        }
+        log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
+    }
+
     public void matchToken(String tok) {
         log(this.token + " == " + tok);
         if (this.token.equals(tok)) {
@@ -732,14 +800,10 @@ public class SyntacticAnalyzer {
             log("new token: " + this.token);
         } else {
             if (this.token.equals("EOF")) {
-                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":fim de arquivo nao esperado.");
+                throwError(2, "");
             } else {
-                throw new Error(this.lexicalAnalyzer.getLinesRead() + ":token nao esperado [" + (this.token) + "]");
+                throwError(3, this.token);
             }
-        }
-
-        if (error != null) {
-            throw error;
         }
     }
 
@@ -760,6 +824,32 @@ public class SyntacticAnalyzer {
     public void log(String msg) {
         if (this.logEnabled) {
             System.out.println(new Date().toString() + " >> SYN " + msg);
+        }
+    }
+
+    public void throwError(int errorCode, String lex) {
+        switch (errorCode) {
+        case 0:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":caractere invalido.");
+        case 1:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":lexema nao identificado [" + lex + "].");
+        case 2:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":fim de arquivo nao esperado.");
+        case 3:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":token nao esperado [" + lex + "].");
+        case 4:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":fim de arquivo não esperado.");
+        case 5:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":identificador nao declarado [" + lex + "].");
+        case 6:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":identificador ja declarado [" + lex + "].");
+        case 7:
+            throw new Error(
+                    this.lexicalAnalyzer.getLinesRead() + ":classe de identificador incompatível [" + lex + "].");
+        case 8:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tipos incompatíveis.");
+        case 9:
+            throw new Error(this.lexicalAnalyzer.getLinesRead() + ":tamanho do vetor excede o máximo permitido.");
         }
     }
 
