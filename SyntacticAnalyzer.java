@@ -1,4 +1,6 @@
 import java.util.Date;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Pontificia Universidade Catolica de Minas Gerais Intituto de Ciencias Exatas
@@ -16,8 +18,11 @@ public class SyntacticAnalyzer {
     LexicalAnalyzer lexicalAnalyzer;
     boolean logEnabled;
 
-    public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer) {
+    FileWriter codeWriter;
+
+    public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer, FileWriter codeWriter) {
         this.lexicalAnalyzer = lexicalAnalyzer;
+        this.codeWriter = codeWriter;
         logEnabled = true;
     }
 
@@ -32,6 +37,11 @@ public class SyntacticAnalyzer {
             procedure_Command();
         }
         matchToken("EOF");
+        try {
+            codeWriter.close();
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
+        }
     }
 
     ///////////////////////////////////////////////////// Statements
