@@ -1,0 +1,35 @@
+Var char x;
+Const E2 = 'n';
+Const E = 1;Const E3 = 34;
+Const E1 = 'b';
+Var integer x1;
+
+
+Var integer eita, n1[100], n = 50, n7 = 10, teste[45], beicola[24];
+integer MAXITER = 0, n2;
+integer nome[100];
+Char n4 = 'x',a;
+char mm,nn,ab = '3';
+char mm2,nn2 = 'n',ab2;
+integer mm3 = 23,nn3,ab3 = 3;
+integer mm4,nn4 = 55,ab4;
+char vet[256];
+integer vet2[33];
+integer veeet;
+char slaus;
+var char nome2[2047], nome31[110], nomezin = 'J';
+integer nome433[2000], integer32[20];
+char nome24[2047], nome3[20];
+integer fed = 31333;
+Const n5='B';
+Const n8 = 'F';
+Const oi = 'f';
+var integer n9 = 9;
+char x23 = 0xFF;
+const p = 3;
+;  
+mm3 = 3;
+a = 'b';
+a = 0xFF;
+vet = "abc";
+a = (not(3=3));

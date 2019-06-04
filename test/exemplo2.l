@@ -1,6 +1,9 @@
 /* Exemplo de Programa na linguagem L */
 
 Var integer n[3], i, max;
+const a = 1;
+const b = 'a';
+var char nome[10];
 
 /* Programa Principal */
 

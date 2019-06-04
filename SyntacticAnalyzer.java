@@ -98,6 +98,8 @@ public class SyntacticAnalyzer {
                 matchToken("constant");
                 semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = false
                 matchToken(";");
+                codeGenerationT5(id, value);
+                log("id after codegeneration: " + id);
             }
         }
     }
@@ -721,11 +723,15 @@ public class SyntacticAnalyzer {
         try {
             if (id.getSize() == 0) {
                 if (id.getType().equals("INTEGER")) {
-                    codeWriter.write("sword ?\n");
+                    codeWriter.write("sword ?" +  + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition += 2;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 } else if (id.getType().equals("CHAR")) {
-                    codeWriter.write("byte ?\n");
+                    codeWriter.write("byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition++;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             }
         } catch (IOException ioe) {
@@ -798,13 +804,15 @@ public class SyntacticAnalyzer {
         try {
             if (id.getType().equals("INTEGER")) {
                 if (id.getSize() > 0) {
-                    codeWriter.write("sword " + Integer.toString(id.getSize() * 2) + " DUP(?)\n");
+                    codeWriter.write("sword " + Integer.toString(id.getSize() * 2) + " DUP(?)         ; " + nextAvailableMemoryPosition + "\n");
                     nextAvailableMemoryPosition += 2 * id.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             } else if (id.getType().equals("CHAR")) {
                 if (id.getSize() > 0) {
-                    codeWriter.write("byte " + Integer.toString(id.getSize()) + "h DUP(?)\n");
+                    codeWriter.write("byte " + Integer.toString(id.getSize()) + "h DUP(?)         ; " + nextAvailableMemoryPosition + "\n");
                     nextAvailableMemoryPosition += id.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             }
         } catch (IOException ioe) {
@@ -838,12 +846,24 @@ public class SyntacticAnalyzer {
         log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
     }
 
-    public void codeGenerationT5() {
-        // try {
-
-        // } catch (IOException ioe) {
-        // throw new Error("problema com o arquivo de saida");
-        // }
+    public void codeGenerationT5(Symbol id, Symbol value) {
+        try {
+            if (id.getSize() == 0) {
+                if (id.getType().equals("INTEGER")) {
+                    codeWriter.write("sword " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition += 2;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                } else if (id.getType().equals("CHAR")) {
+                    codeWriter.write("byte " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n");
+                    id.setAddr((byte)nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition++;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                }
+            }
+        } catch (IOException ioe) {
+            throw new Error("problema com o arquivo de saida");
+        }
     }
 
     public void matchToken(String tok) {
