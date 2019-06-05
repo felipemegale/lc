@@ -108,7 +108,7 @@ public class SyntacticAnalyzer {
                 matchToken("constant");
                 semanticActionT5(cond, id, value); // Acao Semantica Tipo 5 p/ Cond = false
                 matchToken(";");
-                codeGenerationT5(id, value);
+                codeGenerationT2(id, value);
                 log("id after codegeneration: " + id);
             }
         }
@@ -219,8 +219,9 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Atribuicao grammar Atribuição ->  "id" [ "[" Expressão "]" ] "=" Expressão ";" 
-     * With Semantic Actions Atribuição ->  "id" <C1>[<C2> "[" Expressão <T19>"]" ] <U2>"=" Expressão <T20>";" 
+     * Procedure for Atribuicao grammar Atribuição -> "id" [ "[" Expressão "]" ] "="
+     * Expressão ";" With Semantic Actions Atribuição -> "id" <C1>[<C2> "["
+     * Expressão <T19>"]" ] <U2>"=" Expressão <T20>";"
      */
     public void procedure_Assigment() {
         Symbol id;
@@ -243,6 +244,7 @@ public class SyntacticAnalyzer {
         procedure_Expression(exp1);
         semanticActionT20(cond, id, exp1);
         matchToken(";");
+        // codeGenerationT3();
     }
 
     /**
@@ -585,58 +587,6 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * se tipo do id = inteiro, escreve sword senao, escreve char. os tamanhos serao
-     * definidos na geracao T4
-     * 
-     * @param id
-     */
-    public void codeGenerationT1(Symbol id, Symbol valueVector, boolean cond) {
-        String code = "";
-        if (cond) { // se entrou em valueVector
-            if (valueVector.getSize() > 0) { // se e' um vetor
-                if (id.getType().equals("INTEGER")) {
-                    code = "sword " + Integer.toString(valueVector.getSize() * 2) + " DUP(?)         ; "
-                            + nextAvailableMemoryPosition + "\n";
-                    id.setAddr((byte)nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition += 2 * valueVector.getSize();
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                } else if (id.getType().equals("CHAR")) {
-                    code = "byte " + Integer.toString(valueVector.getSize()) + "h DUP(?)         ; "
-                            + nextAvailableMemoryPosition + "\n";
-                    id.setAddr((byte)nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition += valueVector.getSize();
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                }
-            } else { // se e' uma atribuicao
-                if (id.getType().equals("INTEGER")) {
-                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
-                    id.setAddr((byte)nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition += 2;
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                } else if (id.getType().equals("CHAR")) {
-                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
-                    id.setAddr((byte)nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition++;
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                }
-            }
-        } else { // se nao for vetor nem atribuicao, ou seja, uma declaracao simples
-            if (id.getType().equals("INTEGER")) {
-                code = "sword ?          ; endereco atual: " + nextAvailableMemoryPosition + "\n";
-                id.setAddr((byte)nextAvailableMemoryPosition);
-                nextAvailableMemoryPosition += 2;
-                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-            } else if (id.getType().equals("CHAR")) {
-                code = "byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n";
-                id.setAddr((byte)nextAvailableMemoryPosition);
-                nextAvailableMemoryPosition++;
-                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-            }
-        }
-        writeCode(code);
-    }
-
-    /**
      * if(isNumero(num) == false){ ERRO }else{ valueVector.tam = num.lex }
      */
     public void semanticActionT2(Symbol value, Symbol valueVector) {
@@ -649,7 +599,7 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * if(cond){ if(isNumero(valor.lex) == false){ ERRO }else{ valueVector.tipo =
+     * if(cond){ if(isNumero(valor.le x) == false){ ERRO }else{ valueVector.tipo =
      * inteiro; } }else{ if(isNumero(valor.lex) == false){ valueVector.tipo =
      * caractere; }else{ valueVector.tipo = inteiro; } }
      */
@@ -662,12 +612,12 @@ public class SyntacticAnalyzer {
                 valueVector.setLexeme(value.getLexeme());
             }
         } else {
-            valueVector.setType(value.getType());
+            valueVector.setType(value .getType());
         }
         log("Semantic Action T3 -> condition: " + condition + " value: " + value + " valueVector: " + valueVector);
     }
 
-    /**
+    /** 
      * if (valueVector.tam > 0){ if(id.tipo == inteiro){ if(valueVector.tam > 2000){
      * ERRO }else if(valueVector.tipo != id.tipo){ ERRO }else{ id.tam =
      * valueVector.tam } } else{ if(valueVector.tam > 4000){ ERRO }else
@@ -675,7 +625,7 @@ public class SyntacticAnalyzer {
      * }else if(valueVector.tipo != id.tipo){ ERRO }
      */
     public void semanticActionT4(boolean condition, Symbol id, Symbol valueVector) {
-        if (valueVector.getSize() > 0) {
+        if (valueVector.getSize()  > 0) {
             if (id.getType().equals("INTEGER")) {
                 if (valueVector.getSize() > 2000) {
                     throwError(9, "");
@@ -721,28 +671,6 @@ public class SyntacticAnalyzer {
             }
         }
         log("Semantic Action T5 -> condition: " + condition + " id: " + id + " value: " + value);
-    }
-
-    public void codeGenerationT5(Symbol id, Symbol value) {
-        try {
-            if (id.getSize() == 0) {
-                if (id.getType().equals("INTEGER")) {
-                    codeWriter.write("sword " + value.getLexeme() + "         ; endereco atual: "
-                            + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte) nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition += 2;
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                } else if (id.getType().equals("CHAR")) {
-                    codeWriter.write("byte " + value.getLexeme() + "         ; endereco atual: "
-                            + nextAvailableMemoryPosition + "\n");
-                    id.setAddr((byte) nextAvailableMemoryPosition);
-                    nextAvailableMemoryPosition++;
-                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
-                }
-            }
-        } catch (IOException ioe) {
-            throw new Error("problema com o arquivo de saida");
-        }
     }
 
     /**
@@ -1093,6 +1021,88 @@ public class SyntacticAnalyzer {
         } catch (IOException ioe) {
             throw new Error("problema com o arquivo de saida");
         }
+    }
+
+    /**
+     * se tipo do id = inteiro, escreve sword senao, escreve char. os tamanhos serao
+     * definidos na geracao T4
+     */
+    public void codeGenerationT1(Symbol id, Symbol valueVector, boolean cond) {
+        String code = "";
+        if (cond) { // se entrou em valueVector
+            if (valueVector.getSize() > 0) { // se e' um vetor
+                if (id.getType().equals("INTEGER")) {
+                    code = "sword " + Integer.toString(valueVector.getSize() * 2) + " DUP(?)         ; "
+                            + nextAvailableMemoryPosition + "\n";
+                    id.setAddr((byte) nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition += 2 * valueVector.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                } else if (id.getType().equals("CHAR")) {
+                    code = "byte " + Integer.toString(valueVector.getSize()) + "h DUP(?)         ; "
+                            + nextAvailableMemoryPosition + "\n";
+                    id.setAddr((byte) nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition += valueVector.getSize();
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                }
+            } else { // se e' uma atribuicao
+                if (id.getType().equals("INTEGER")) {
+                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
+                    id.setAddr((byte) nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition += 2;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                } else if (id.getType().equals("CHAR")) {
+                    code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
+                    id.setAddr((byte) nextAvailableMemoryPosition);
+                    nextAvailableMemoryPosition++;
+                    log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+                }
+            }
+        } else { // se nao for vetor nem atribuicao, ou seja, uma declaracao simples
+            if (id.getType().equals("INTEGER")) {
+                code = "sword ?          ; endereco atual: " + nextAvailableMemoryPosition + "\n";
+                id.setAddr((byte) nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition += 2;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            } else if (id.getType().equals("CHAR")) {
+                code = "byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n";
+                id.setAddr((byte) nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition++;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            }
+        }
+        writeCode(code);
+    }
+
+    /**
+     * geracao de declaracao de constantes
+     */
+    public void codeGenerationT2(Symbol id, Symbol value) {
+        String code = "";
+        if (id.getSize() == 0) {
+            if (id.getType().equals("INTEGER")) {
+                code = "sword " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n";
+                id.setAddr((byte) nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition += 2;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            } else if (id.getType().equals("CHAR")) {
+                code = "byte " + value.getLexeme() + "         ; endereco atual: " + nextAvailableMemoryPosition + "\n";
+                id.setAddr((byte) nextAvailableMemoryPosition);
+                nextAvailableMemoryPosition++;
+                log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
+            }
+        }
+        writeCode(code);
+    }
+
+    /**
+     * geracao de codigo para atribuicoes
+     */
+    public void codeGenerationT3() {
+        String code = "";
+
+
+
+        writeCode(code);
     }
 
 }
