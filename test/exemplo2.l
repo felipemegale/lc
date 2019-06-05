@@ -11,10 +11,9 @@ var char letra;
   For I=0 to 2 do {
     write("Digite um numero: ");
     nome = "felipe";
-    readln(i);
+    readln(n);
   }
-  If n[0] > n[1] then {
-    If n[0] > n[2] then max=n[0]; else max=n[2];
-  } else If n[1] > n[2] then max=n[1]; else max=n[2]; 
-  writeln("O maior numero e' ",max);
+  If n[0] > n[3] then {
+    writeln("teste", max);
+  } else  writeln("O maior numero e' ",max);
   

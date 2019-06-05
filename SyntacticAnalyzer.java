@@ -192,7 +192,7 @@ public class SyntacticAnalyzer {
             semanticActionT3(cond, value, valueVector);
         }
     }
-
+    
     ////////////////////////////////////////////////////// Commands
     ////////////////////////////////////////////////////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -255,7 +255,7 @@ public class SyntacticAnalyzer {
      */
     public void procedure_Loop() {
         boolean cond = false;
-        Symbol id, value;
+        Symbol id, value = null;
         matchToken("for");
         id = this.lexicalRegister;
         matchToken("id");
@@ -265,10 +265,15 @@ public class SyntacticAnalyzer {
         temporary = 0;
         procedure_Expression(exp);
         semanticActionT17(id, exp);
+        String rotInicio = newLabel();
+        String rotFim = newLabel();
+        //codeGenerationCODIGO();
+        codeGenerationT18(rotInicio, rotFim);
         matchToken("to");
         Symbol exp1 = new Symbol(null, "exp");
         temporary = 0;
         procedure_Expression(exp1);
+        codeGenerationT19(rotInicio, rotFim, exp1, id);
         if (token.equals("step")) {
             cond = true;
             matchToken("step");
@@ -283,10 +288,12 @@ public class SyntacticAnalyzer {
                     || token.equals("readln") || token.equals("write") || token.equals("writeln")) {
                 procedure_Command();
             }
+            codeGenerationT20(id, value, rotInicio);
             matchToken("}");
         } else {
             procedure_Command();
         }
+        codeGenerationT21(rotFim);
     }
 
     /**
@@ -1501,5 +1508,41 @@ public class SyntacticAnalyzer {
             "pop cx\n"+
             "imul cx\n";
         writeCode(code);
+    }
+
+    public void codeGenerationT18(String rotInicio, String rotFim){
+        String code = rotInicio + ":\n";
+        writeCode(code);
+    }
+    
+    public void codeGenerationT19(String rotInicio, String rotFim, Symbol exp1, Symbol id){
+        String code = "";
+        code += "mov ax, DS:["+ String.valueOf((exp1.getAddr()) & 0xFFF) + "h]\t; Pegando conteudo de exp.end\n"+
+        "mov bx, DS:["+ String.valueOf((id.getAddr()) & 0xFFF) + "h]\t; Pegando conteudo de id.end\n"+
+        "mov ah, 0\n" +
+        "mov bh, 0\n" +
+        "cmp ax, bx\t; comparando ax bx\n" + 
+        "jg " + rotFim + "\n";
+        writeCode(code);
+    }
+
+    public void codeGenerationT20(Symbol id, Symbol value, String rotInicio){
+        String code = "";
+       
+
+        if(value != null){
+            code += "mov bx, DS:["+ String.valueOf((value.getAddr()) & 0xFFF) + "h]\t; Pegando conteudo de value.end\n"+
+            "mov ax, DS:["+ String.valueOf((id.getAddr()) & 0xFFF) + "h]\t; Pegando conteudo de id.end\n"+
+            "add ax, bx\n" +
+            "jmp " + rotInicio + "\n";
+        } else {
+            code += "mov ax, DS:["+ String.valueOf((id.getAddr()) & 0xFFF) + "h]\t; Pegando conteudo de id.end\n"+
+            "add ax, 1\n" +
+            "jmp " + rotInicio + "\n";
+        }
+        writeCode(code);
+    }
+    public void codeGenerationT21(String rotFim){
+        writeCode(rotFim + ":\n");
     }
 }
