@@ -224,7 +224,7 @@ public class SyntacticAnalyzer {
      * Expressão <T19>"]" ] <U2>"=" Expressão <T20>";"
      */
     public void procedure_Assigment() {
-        Symbol id;
+        Symbol id, exp = null;
         boolean cond = false;
         id = this.lexicalRegister;
         matchToken("id");
@@ -232,7 +232,7 @@ public class SyntacticAnalyzer {
         if (token.equals("[")) {
             cond = true;
             matchToken("[");
-            Symbol exp = new Symbol(null, "exp");
+            exp = new Symbol(null, "exp");
             temporary = 0;
             procedure_Expression(exp);
             semanticActionT19(cond, id, exp);
@@ -243,6 +243,7 @@ public class SyntacticAnalyzer {
         temporary = 0;
         procedure_Expression(exp1);
         semanticActionT20(cond, id, exp1);
+        // codeGenerationT13(cond, id, exp, exp1);
         matchToken(";");
     }
 
@@ -1215,16 +1216,16 @@ public class SyntacticAnalyzer {
 
             if (id.getType().equals("INTEGER")) {
                 code =
-                "mov ax, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
-                "add ax, ax\n" +
-                "add ax, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
-                "mov bx, DS:[ax]\n" +
+                "mov al, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
+                "add al, al\n" +
+                "add al, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
+                "mov bx, DS:[al]\n" +
                 "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
             } else if (id.getType().equals("CHAR")) {
                 code =
-                "mov ax, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
-                "add ax, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
-                "mov bx, DS:[ax]\n" +
+                "mov al, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
+                "add al, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
+                "mov bx, DS:[al]\n" +
                 "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
             }
         } else {
@@ -1406,6 +1407,29 @@ public class SyntacticAnalyzer {
 
         code += "mov DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h], ax\n";
         
+        writeCode(code);
+    }
+
+    /**
+     * Atribuicao
+     */
+    public void codeGenerationT13(boolean condition, Symbol id, Symbol exp, Symbol exp1) {
+        String code = "";
+
+        if (condition) {
+
+        } else {
+            if (exp.getType().equals("STRING")) {
+                code = "mov ax, DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h]\n";
+            }
+        }
+
+        /*
+        { carregar conteúdo de Exp.end }
+{ armazenar o resultado em id.end }
+Obs: strings devem ser movidas caractere a caractere
+        */
+
         writeCode(code);
     }
 }
