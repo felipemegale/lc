@@ -19,7 +19,7 @@ public class SyntacticAnalyzer {
     boolean logEnabled;
 
     FileWriter codeWriter;
-    int nextAvailableMemoryPosition = 4000; // endereco "base"
+    int nextAvailableMemoryPosition = 4000; // endereco "base" da memoria de dados
     int label = 0; // contador de rotulo
     int temporary = 0; // contador de temporario
 
@@ -244,7 +244,6 @@ public class SyntacticAnalyzer {
         procedure_Expression(exp1);
         semanticActionT20(cond, id, exp1);
         matchToken(";");
-        // codeGenerationT3();
     }
 
     /**
@@ -520,8 +519,10 @@ public class SyntacticAnalyzer {
             matchToken(")");
         } else if (token.equals("constant")) {
             value = this.lexicalRegister;
+            log("value: " + value);
             matchToken("constant");
             semanticActionT7(factor, value);
+            codeGenerationT3(factor, value);
         } else {
             id = this.lexicalRegister;
             matchToken("id");
@@ -695,21 +696,30 @@ public class SyntacticAnalyzer {
      * Fator.tipo = getTipo(valor.lex)
      */
     public void semanticActionT7(Symbol factor, Symbol value) {
+        log("699: " + factor);
         factor.setType(value.getType());
+        factor.setLexeme(value.getLexeme());
+        log("702: " + factor);
     }
 
     /**
      * Fator.tipo = Expressão.tipo
      */
     public void semanticActionT8(Symbol factor, Symbol exp) {
+        log("709: " + factor);
         factor.setType(exp.getType());
+        factor.setLexeme(exp.getLexeme());
+        log("712: " + factor);
     }
 
     /**
      * Expressão.tipo = ExpressãoS.tipo
      */
     public void semanticActionT9(Symbol exp, Symbol expS) {
+        log("719: " + exp);
         exp.setType(expS.getType());
+        exp.setLexeme(expS.getLexeme());
+        log("722: " + exp);
     }
 
     /**
@@ -725,7 +735,10 @@ public class SyntacticAnalyzer {
      * Termo.tipo = Fator.tipo
      */
     public void semanticActionT11(Symbol term, Symbol factor) {
+        log("738:" + term);
         term.setType(factor.getType());
+        term.setLexeme(factor.getLexeme());
+        log("741:" + term);
     }
 
     /**
@@ -776,6 +789,7 @@ public class SyntacticAnalyzer {
                 throwError(8, "");
             } else {
                 expS.setType("INTEGER");
+                expS.setLexeme(term.getLexeme());
             }
         } else if (condSub) {
             if (!term.getType().equals("INTEGER")) {
@@ -784,10 +798,12 @@ public class SyntacticAnalyzer {
                 throwError(8, "");
             } else {
                 expS.setType("INTEGER");
+                expS.setLexeme(term.getLexeme());
             }
         } else {
             expS.setSize(term.getSize());
             expS.setType(term.getType());
+            expS.setLexeme(term.getLexeme());
         }
     }
 
@@ -836,7 +852,9 @@ public class SyntacticAnalyzer {
     public void semanticActionT15(boolean condEquals, boolean condDiff, boolean condLess, boolean condGreater,
             boolean condLessEquals, Symbol exp, Symbol expS) {
         if (condEquals) {
-            if (!expS.getType().equals(exp.getType())) {
+            if (!(expS.getType().equals("CHAR") && expS.getSize() > 0) && (exp.getType().equals("STRING"))) {
+                throwError(8, "");
+            } else if (!expS.getType().equals(exp.getType())) {
                 throwError(8, "");
             } else if (expS.getType().equals("INTEGER")) {
                 if (expS.getSize() > 0 || exp.getSize() > 0) {
@@ -939,8 +957,11 @@ public class SyntacticAnalyzer {
      * }else{ if(exp.tam + 1 > id.tam){ ERRO } }
      */
     public void semanticActionT20(boolean cond, Symbol id, Symbol exp) {
+        log("id: " + id);
+        log("exp: " + exp);
         if (!exp.getType().equals(id.getType())) {
-            throwError(8, "");
+            if (!(id.getType().equals("CHAR") && id.getSize() > 0) && (exp.getType().equals("STRING")))
+                throwError(8, "");
         } else if (exp.getType().equals("INTEGER") && id.getType().equals("INTEGER")) {
             if (exp.getSize() > 0) {
                 throwError(8, "");
@@ -976,6 +997,22 @@ public class SyntacticAnalyzer {
             log(" ERRO INTERNO. updateLexicalRegister " + register);
         }
         return updatedLexicalRegister;
+    }
+
+    /**
+     * pega o valor atual dos temporarios,
+     * incrementa em 1 ou 2, conforme tipo e retorna
+     */
+    public byte newTemp(String allocType) {
+        byte returnValue = (byte) temporary;
+
+        if (allocType.equals("CHAR")) {
+            temporary += 1;
+        } else if (allocType.equals("INTEGER")) {
+            temporary += 2;
+        }
+
+        return returnValue;
     }
 
     /**
@@ -1096,13 +1133,43 @@ public class SyntacticAnalyzer {
 
     /**
      * geracao de codigo para atribuicoes
+     * F -> const
      */
-    public void codeGenerationT3() {
+    public void codeGenerationT3(Symbol factor, Symbol value) {
         String code = "";
 
+        // se value e' string
+        if (value.getType().equals("STRING")) {
+            String stringValue = value.getLexeme().substring(0,value.getLexeme().length()-1) + "$\"";
+            log("1127: " + stringValue);
+            code = "dseg segment public\n" +
+                "byte " + stringValue + "\n" +
+                "dseg ENDS\n";
 
+            // F.end := contador de dados
+            factor.setAddr((byte) nextAvailableMemoryPosition);
+            // atualizar contador de dados
+            nextAvailableMemoryPosition += stringValue.length()-2;
+        } else {
+            factor.setAddr(newTemp(value.getType()));
+
+            if (value.getType().equals("INTEGER")) {
+                code = "mov ax, " + value.getLexeme() + "\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], ax\n";
+            } else if (value.getType().equals("CHAR")) {
+                code = "mov al, " + value.getLexeme().replaceAll("\'", "") + "\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], al\n";
+            }
+        }
 
         writeCode(code);
     }
 
+    // public void codeGenerationT4() {
+    //     String code;
+
+
+
+    //     writeCode(code);
+    // }
 }
