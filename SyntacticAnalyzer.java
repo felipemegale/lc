@@ -582,25 +582,25 @@ public class SyntacticAnalyzer {
                 if (id.getType().equals("INTEGER")) {
                     code = "sword " + Integer.toString(valueVector.getSize() * 2) + " DUP(?)         ; "
                             + nextAvailableMemoryPosition + "\n";
-                    // id.setAddr();
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition += 2 * valueVector.getSize();
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 } else if (id.getType().equals("CHAR")) {
                     code = "byte " + Integer.toString(valueVector.getSize()) + "h DUP(?)         ; "
                             + nextAvailableMemoryPosition + "\n";
-                    // id.setAddr();
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition += valueVector.getSize();
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
             } else { // se e' uma atribuicao
                 if (id.getType().equals("INTEGER")) {
                     code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
-                    // id.setAddr();
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition += 2;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 } else if (id.getType().equals("CHAR")) {
                     code = "sword " + valueVector.getLexeme() + "         ; " + nextAvailableMemoryPosition + "\n";
-                    // id.setAddr();
+                    id.setAddr((byte)nextAvailableMemoryPosition);
                     nextAvailableMemoryPosition++;
                     log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
                 }
@@ -608,12 +608,12 @@ public class SyntacticAnalyzer {
         } else { // se nao for vetor nem atribuicao, ou seja, uma declaracao simples
             if (id.getType().equals("INTEGER")) {
                 code = "sword ?          ; endereco atual: " + nextAvailableMemoryPosition + "\n";
-                // id.setAddr(nextAvailableMemoryPosition);
+                id.setAddr((byte)nextAvailableMemoryPosition);
                 nextAvailableMemoryPosition += 2;
                 log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
             } else if (id.getType().equals("CHAR")) {
                 code = "byte ?         ; endereco atual: " + nextAvailableMemoryPosition + "\n";
-                // id.setAddr(nextAvailableMemoryPosition);
+                id.setAddr((byte)nextAvailableMemoryPosition);
                 nextAvailableMemoryPosition++;
                 log("!!! NEXT AVAILABLE MEMORY POSITION !!!" + nextAvailableMemoryPosition);
             }
