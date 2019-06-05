@@ -511,11 +511,13 @@ public class SyntacticAnalyzer {
             Symbol factor1 = new Symbol(null, "factor1");
             procedure_Factor(factor1);
             semanticActionT10(factor1);
+            codeGenerationT5(factor, factor1);
         } else if (token.equals("(")) {
             matchToken("(");
             Symbol exp = new Symbol(null, "exp");
             procedure_Expression(exp);
             semanticActionT8(factor, exp);
+            codeGenerationT4(factor, exp);
             matchToken(")");
         } else if (token.equals("constant")) {
             value = this.lexicalRegister;
@@ -696,30 +698,30 @@ public class SyntacticAnalyzer {
      * Fator.tipo = getTipo(valor.lex)
      */
     public void semanticActionT7(Symbol factor, Symbol value) {
-        log("699: " + factor);
+        // log("699: " + factor);
         factor.setType(value.getType());
         factor.setLexeme(value.getLexeme());
-        log("702: " + factor);
+        // log("702: " + factor);
     }
 
     /**
      * Fator.tipo = Expressão.tipo
      */
     public void semanticActionT8(Symbol factor, Symbol exp) {
-        log("709: " + factor);
+        // log("709: " + factor);
         factor.setType(exp.getType());
         factor.setLexeme(exp.getLexeme());
-        log("712: " + factor);
+        // log("712: " + factor);
     }
 
     /**
      * Expressão.tipo = ExpressãoS.tipo
      */
     public void semanticActionT9(Symbol exp, Symbol expS) {
-        log("719: " + exp);
+        // log("719: " + exp);
         exp.setType(expS.getType());
         exp.setLexeme(expS.getLexeme());
-        log("722: " + exp);
+        // log("722: " + exp);
     }
 
     /**
@@ -1008,7 +1010,7 @@ public class SyntacticAnalyzer {
 
         if (allocType.equals("CHAR")) {
             temporary += 1;
-        } else if (allocType.equals("INTEGER")) {
+        } else if (allocType.equals("INTEGER") || allocType.equals("LOGICAL")) {
             temporary += 2;
         }
 
@@ -1165,11 +1167,25 @@ public class SyntacticAnalyzer {
         writeCode(code);
     }
 
-    // public void codeGenerationT4() {
-    //     String code;
+    /**
+     * F -> "(" Exp ")"
+     */
+    public void codeGenerationT4(Symbol factor, Symbol exp) {
+        factor.setAddr(exp.getAddr());
+    }
 
+    /**
+     * F -> not F1
+     */
+    public void codeGenerationT5(Symbol factor, Symbol factor1) {
+        String code;
+        factor.setAddr(newTemp(factor1.getType()));
 
+        code = "mov dx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h]\n" + 
+        "neg dx\n" + 
+        "add dx, 1\n" +
+        "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], dx\n";
 
-    //     writeCode(code);
-    // }
+        writeCode(code);
+    }
 }
