@@ -1160,9 +1160,9 @@ public class SyntacticAnalyzer {
         if (value.getType().equals("STRING")) {
             String stringValue = value.getLexeme().substring(0,value.getLexeme().length()-1) + "$\"";
             // log("1127: " + stringValue);
-            code = "dseg segment public\n" +
-                "byte " + stringValue + "\n" +
-                "dseg ENDS\n";
+            code = "dseg segment public\t; Inicio segmento de dados\n" +
+                "byte " + stringValue + "\t; Armazenando valor String\n" +
+                "dseg ENDS\t; Final segmento de dados\n";
 
             // F.end := contador de dados
             factor.setAddr((byte) nextAvailableMemoryPosition);
@@ -1172,11 +1172,11 @@ public class SyntacticAnalyzer {
             factor.setAddr(newTemp(value.getType()));
 
             if (value.getType().equals("INTEGER")) {
-                code = "mov ax, " + value.getLexeme() + "\n" +
-                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], ax\n";
+                code = "mov ax, " + value.getLexeme() + " \t; Armazenando valor inteiro em ax\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], ax\t; Salvando em Fator.end\n";
             } else if (value.getType().equals("CHAR")) {
-                code = "mov al, " + value.getLexeme().replaceAll("\'", "") + "\n" +
-                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], al\n";
+                code = "mov al, " + value.getLexeme().replaceAll("\'", "") + "\t; Armazenando valor char em ax\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], al\t; Salvando em Fator.end\n";
             }
         }
 
@@ -1197,10 +1197,10 @@ public class SyntacticAnalyzer {
         String code;
         factor.setAddr(newTemp(factor1.getType()));
 
-        code = "mov dx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h]\n" + 
-        "neg dx\n" + 
-        "add dx, 1\n" +
-        "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], dx\n";
+        code = "mov dx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h] \t; Carregando valor em Fator1.end\n" + 
+        "neg dx\t; fazendo not Fator\n" + 
+        "add dx, 1\t; complemento de 1\n" +
+        "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], dx\t; Carregando valor em Fator.end\n";
 
         writeCode(code);
     }
@@ -1210,28 +1210,26 @@ public class SyntacticAnalyzer {
      */
     public void codeGenerationT6(boolean condition, Symbol factor, Symbol id, Symbol exp1) {
         String code = "";
-
         if (condition) {
             factor.setAddr(newTemp(id.getType()));
 
             if (id.getType().equals("INTEGER")) {
                 code =
-                "mov al, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
-                "add al, al\n" +
-                "add al, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
-                "mov bx, DS:[al]\n" +
-                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
+                "mov BX, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\t; Obtendo valor de Exp1.end(Posicao)\n" +
+                "add BX, BX\t; Inteiro (2Bytes)!\n" +
+                "add BX, " + String.valueOf(id.getAddr()&0xFFF) + "h\t; Somando Posicao + id.end(inicial)\n" +
+                "mov AX, DS:[BX]\t; Carregando valor na pos correta\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], AX\t; Armazenando em Fator.end\n";
             } else if (id.getType().equals("CHAR")) {
                 code =
-                "mov al, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
-                "add al, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
-                "mov bx, DS:[al]\n" +
-                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
+                "mov BX, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\t; Obtendo valor de Exp1.end(Posicao)\n" +
+                "add BX, " + String.valueOf(id.getAddr()&0xFFF) + "h\t; Somando Posicao + id.end(inicial)\n" +
+                "mov AX, DS:[BX]\t; Carregando valor na pos correta\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], AX\t; Armazenando em Fator.end\n";
             }
         } else {
             factor.setAddr(id.getAddr());
         }
-
         writeCode(code);
     }
 
@@ -1250,41 +1248,41 @@ public class SyntacticAnalyzer {
         String label1, label2 = "";
 
         code =
-        "mov ax, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\n" +
-        "mov bx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h]\n";
+        "mov ax, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\t; Carregar valor de Termo.end\n" +
+        "mov bx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h]\t; Carregar valor de Fator1.end\n";
 
         if (condMult) { // multiplicacao
-            code += "imul bx\n";
+            code += "imul bx\t; ax <- ax * bx (Termo * Fator1)\n";
             term.setAddr(newTemp(factor1.getType()));
     
-            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em Termo.end\n";
         } else if (condDiv) { // divisao
-            code += "idiv bx\n";
+            code += "idiv bx\t; ax(quoc) <- ax / bx\n";
             term.setAddr(newTemp(factor1.getType()));
     
-            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em Termo.end\n";
         } else if (condMod) { // resto
             code +=
-            "idiv bx\n" +
-            "mov ax, dx\n";
+            "idiv bx\t; dx(resto) <- ax / bx\n" +
+            "mov ax, dx\t; movendo o resto da divisao para ax\n";
             term.setAddr(newTemp(factor1.getType()));
     
-            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em Termo.end\n";
          } else { // E logico
             label1 = newLabel();
             label2 = newLabel();
             code +=
-            "imul bx\n" +
-            "cmp ax, 0\n" +
-            "jne " + label1 + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + label2 + "\n" +
+            "imul bx\t; Operacao AND (*)\n" +
+            "cmp ax, 0\t; Verificando se AND = 0 (Falso)\n" +
+            "jne " + label1 + "\t; Jump para " + label1 + " caso AND = 1\n" +
+            "mov ax, 0\t; Salva resultado como Falso (0) \n" +
+            "jmp " + label2 + "\t; Jump para " + label2 + " (Final)\n" +
             label1 + ":\n" +
-            "mov ax, 1\n" +
-            "jmp " + label2 + "\n";
+            "mov ax, 1\t; Salva resultado como Verdadeiro (1) \n" +
+            "jmp " + label2 + "\t; Jump para " + label2 + " (Final)\n";
             term.setAddr(newTemp(factor1.getType()));
     
-            code += label2 + ":\nmov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
+            code += label2 + ":\nmov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em Termo.end\n";
         }
 
 
@@ -1300,10 +1298,10 @@ public class SyntacticAnalyzer {
         if (condSub) { // necessidade de negar term
             expS.setAddr(newTemp(term.getType()));
 
-            code = "mov dx, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\n" + 
-            "neg dx\n" + 
-            "add dx, 1\n" +
-            "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], dx\n";
+            code = "mov dx, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\t; Carregando valor de Termo.end\n" + 
+            "neg dx\t; Negando Termo (-) Termo\n" + 
+            "add dx, 1\t; Complemento de 1\n" +
+            "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], dx\t; Armazenando resultado em ExpS.end\n";
         } else {
             expS.setAddr(term.getAddr());
         }
@@ -1319,34 +1317,34 @@ public class SyntacticAnalyzer {
         String label1, label2 = "";
 
         code =
-        "mov ax, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\n" +
-        "mov bx, DS:[" + String.valueOf(term1.getAddr()&0xFFF) + "h]\n";
+        "mov ax, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\t; ax <- Carregando valor de expS.end\n" +
+        "mov bx, DS:[" + String.valueOf(term1.getAddr()&0xFFF) + "h]\t; bx <- Carregando valor de Term1.end\n";
 
         if (condSoma) { // soma
-            code += "add ax, bx\n";
+            code += "add ax, bx\t; Operacao Soma (ax <- ax + bx)\n";
             expS.setAddr(newTemp(term1.getType()));
     
-            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em ExpS.end\n";
         } else if (condSub) { // subtracao
-            code += "sub ax, bx\n";
+            code += "sub ax, bx\t; Operacao Subtracao (ax <- ax - bx)\n";
             expS.setAddr(newTemp(term1.getType()));
     
-            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em ExpS.end\n";
         } else { // OU logico
             label1 = newLabel();
             label2 = newLabel();
             code +=
-            "add ax, bx\n" +
-            "cmp ax, 0\n" +
-            "jne " + label1 + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + label2 + "\n" +
+            "add ax, bx\t; Operacao OU Logico\n\n" +
+            "cmp ax, 0\t; Comparando se OU = 0 (Falso)\n" +
+            "jne " + label1 + "\t; Jump para " + label1 + " caso OR = 1(verdadeiro)\n" +
+            "mov ax, 0\t; Armazena resultado como Falso (0)\n" +
+            "jmp " + label2 + "\t; Jump para " + label2 + " (Fim)\n" +
             label1 + ":\n" +
-            "mov ax, 1\n" +
-            "jmp " + label2 + "\n";
+            "mov ax, 1\t; Armazena resultado como Verdadeiro (1)\n" +
+            "jmp " + label2 + "\t; Jump para " + label2 + " (Fim)\n";
             expS.setAddr(newTemp(term1.getType()));
     
-            code += label2 + ":\nmov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+            code += label2 + ":\nmov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em ExpS.end\n";
         }
 
         writeCode(code);
@@ -1360,7 +1358,7 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Exp -> ExpS1
+     * Exp -> (= | <> | > | < | <= | >= ) ExpS1
      */
     public void codeGenerationT12(boolean condEquals, boolean condDiff, boolean condLess, boolean condGreater, boolean condLessEquals, Symbol exp, Symbol expS) {
         String code = "";
@@ -1368,44 +1366,44 @@ public class SyntacticAnalyzer {
         String rotEnd = newLabel();
 
         code =
-        "mov ax, DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h]\n" +
-        "mov bx, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\n" +
-        "mov ah, 0\n" +
-        "mov bh, 0\n" +
-        "cmp ax, bx\n";
+        "mov ax, DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h]\t; (ax) <- Carrega valor de exp.end\n" +
+        "mov bx, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\t; (bx) <- Carrega valor de expS.end\n" +
+        "mov ah, 0\t; Convertendo AX para inteiro (ah = 0)\n" +
+        "mov bh, 0\t; Convertendo BX para inteiro (bh = 0)\n" +
+        "cmp ax, bx\t; Comparando ax com bx\n";
 
         if (condEquals) {
-            code += "je " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "je " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax = bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         } else if (condDiff) {
-            code += "jne " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "jne " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax <> bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         } else if (condLess) {
-            code += "jl " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "jl " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax < bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         } else if (condGreater) {
-            code += "jg " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "jg " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax > bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         } else if (condLessEquals) {
-            code += "jle " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "jle " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax <= bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         } else { // se for maior ou igual
-            code += "jge " + rotTrue + "\n" +
-            "mov ax, 0\n" +
-            "jmp " + rotEnd + "\n";
+            code += "jge " + rotTrue + "\t; Pula para + " + rotTrue + " caso ax => bx\n" +
+            "mov ax, 0\t; armazena como FALSO\n" +
+            "jmp " + rotEnd + "\t; Pula para + " + rotEnd + " (fim)\n";
         }
 
-        code += rotTrue + ": mov ax, 1\n" +
+        code += rotTrue + ":\n mov ax, 1\t; armazena como VERDADEIRO\n" +
         rotEnd + ":\n";
 
         exp.setAddr(newTemp("INTEGER"));
 
-        code += "mov DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h], ax\n";
+        code += "mov DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h], ax\t; Armazenando resultado em Exp.end\n";
         
         writeCode(code);
     }
