@@ -1244,6 +1244,7 @@ public class SyntacticAnalyzer {
      */
     public void codeGenerationT8(boolean condMult, boolean condDiv, boolean condMod, Symbol term, Symbol factor1) {
         String code = "";
+        String label1, label2 = "";
 
         code =
         "mov ax, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\n" +
@@ -1251,20 +1252,38 @@ public class SyntacticAnalyzer {
 
         if (condMult) { // multiplicacao
             code += "imul bx\n";
+            term.setAddr(newTemp(factor1.getType()));
+    
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
         } else if (condDiv) { // divisao
             code += "idiv bx\n";
+            term.setAddr(newTemp(factor1.getType()));
+    
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
         } else if (condMod) { // resto
             code +=
             "idiv bx\n" +
             "mov ax, dx\n";
+            term.setAddr(newTemp(factor1.getType()));
+    
+            code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
          } else { // E logico
-            code += "cmp ax, bx\n" +
-            "mov ax, zf\n";
+            label1 = newLabel();
+            label2 = newLabel();
+            code +=
+            "imul bx\n" +
+            "cmp ax, 0\n" +
+            "jne " + label1 + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + label2 + "\n" +
+            label1 + ":\n" +
+            "mov ax, 1\n" +
+            "jmp " + label2 + "\n";
+            term.setAddr(newTemp(factor1.getType()));
+    
+            code += label2 + ":\nmov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
         }
 
-        term.setAddr(newTemp(factor1.getType()));
-
-        code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
 
         writeCode(code);
     }
