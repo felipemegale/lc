@@ -219,9 +219,8 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Procedure for Atribuicao grammar Comando -> Atribuição | Repetição | Teste |
-     * ";" | Escrita | Leitura With Semantic Actions Comando -> Atribuição |
-     * Repetição | Teste | ";" | Escrita | Leitura
+     * Procedure for Atribuicao grammar Atribuição ->  "id" [ "[" Expressão "]" ] "=" Expressão ";" 
+     * With Semantic Actions Atribuição ->  "id" <C1>[<C2> "[" Expressão <T19>"]" ] <U2>"=" Expressão <T20>";" 
      */
     public void procedure_Assigment() {
         Symbol id;
