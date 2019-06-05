@@ -233,12 +233,14 @@ public class SyntacticAnalyzer {
             cond = true;
             matchToken("[");
             Symbol exp = new Symbol(null, "exp");
+            temporary = 0;
             procedure_Expression(exp);
             semanticActionT19(cond, id, exp);
             matchToken("]");
         }
         matchToken("=");
         Symbol exp1 = new Symbol(null, "exp1");
+        temporary = 0;
         procedure_Expression(exp1);
         semanticActionT20(cond, id, exp1);
         matchToken(";");
@@ -259,10 +261,12 @@ public class SyntacticAnalyzer {
         semanticActionU2(id);
         matchToken("=");
         Symbol exp = new Symbol(null, "exp");
+        temporary = 0;
         procedure_Expression(exp);
         semanticActionT17(id, exp);
         matchToken("to");
         Symbol exp1 = new Symbol(null, "exp");
+        temporary = 0;
         procedure_Expression(exp1);
         if (token.equals("step")) {
             cond = true;
@@ -293,6 +297,7 @@ public class SyntacticAnalyzer {
     public void procedure_Condition() {
         matchToken("if");
         Symbol exp = new Symbol(null, "exp");
+        temporary = 0;
         procedure_Expression(exp);
         semanticActionT16(exp);
         matchToken("then");
@@ -367,6 +372,7 @@ public class SyntacticAnalyzer {
      */
     public void procedure_Expressions() {
         Symbol exp = new Symbol(null, "exp");
+        temporary = 0;
         procedure_Expression(exp);
         if (token.equals(",")) {
             matchToken(",");
