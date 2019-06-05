@@ -19,7 +19,9 @@ public class SyntacticAnalyzer {
     boolean logEnabled;
 
     FileWriter codeWriter;
-    int nextAvailableMemoryPosition = 4000;
+    int nextAvailableMemoryPosition = 4000; // endereco "base"
+    int label = 0; // contador de rotulo
+    int temporary = 0; // contador de temporario
 
     public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer, FileWriter codeWriter) {
         this.lexicalAnalyzer = lexicalAnalyzer;
@@ -30,15 +32,22 @@ public class SyntacticAnalyzer {
     // S -> { Declarações }* { Comando }* [EOF(?)]
     public void procedure_S() {
         try {
+            // segmento de pilha inicio
             codeWriter.write("sseg segment stack         ; inicio seg pilha\n");
             codeWriter.write("byte 4000h DUP(?)          ; dimensiona pilha\n");
             codeWriter.write("sseg ends                  ; fim seg pilha\n\n");
+            // segmento de pilha fim
+
+            // segmento de dados inicio
             codeWriter.write("dseg segment public        ; inicio seg dados\n");
             codeWriter.write("byte 4000h DUP(?)          ; temporarios\n");
             while (token.equals("var") || token.equals("const")) {
                 procedure_Statemants();
             }
             codeWriter.write("dseg ends                  ; fim seg dados\n\n");
+            // segmento de dados fim
+
+            // segmento de codigo inicio
             codeWriter.write("cseg segment public        ; inicio seg codigo\n");
             codeWriter.write("assume CS:cseg, DS:dseg\n");
             codeWriter.write("strt:                      ; inicio do programa\n");
@@ -53,6 +62,7 @@ public class SyntacticAnalyzer {
             codeWriter.write("\nmov ah, 4Ch\n");
             codeWriter.write("int 21h\n");
             codeWriter.write("cseg ends                  ; fim seg codigo\n");
+            // segmento de codigo fim
             codeWriter.write("end strt                   ; fim programa");
             codeWriter.close();
         } catch (IOException ioe) {
