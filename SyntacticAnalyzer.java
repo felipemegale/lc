@@ -447,6 +447,7 @@ public class SyntacticAnalyzer {
         Symbol term = new Symbol(null, "term");
         procedure_Term(term);
         semanticActionT13(condSoma, condSub, expS, term);
+        codeGenerationT9(condSoma, condSub, expS, term);
         while (token.equals("+") || token.equals("-") || token.equals("or")) {
             if (token.equals("+")) {
                 condSoma = true;
@@ -462,6 +463,7 @@ public class SyntacticAnalyzer {
             Symbol term1 = new Symbol(null, "term1");
             procedure_Term(term1);
             semanticActionT14(condSoma, condSub, term1, expS);
+            codeGenerationT10(condSoma, condSub, term1, expS);
         }
     }
 
@@ -1021,6 +1023,14 @@ public class SyntacticAnalyzer {
     }
 
     /**
+     * cria novos rotulos
+     */
+    public String newLabel() {
+        label++;
+        return "Rot"+label;
+    }
+
+    /**
      * Debugging method used to log messages to standard output.
      * 
      * @param msg message
@@ -1223,12 +1233,15 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Termo -> Fator1
+     * Termo -> Fator
      */
     public void codeGenerationT7(Symbol term, Symbol factor) {
         term.setAddr(factor.getAddr());
     }
 
+    /**
+     * Termo -> Fator1
+     */
     public void codeGenerationT8(boolean condMult, boolean condDiv, boolean condMod, Symbol term, Symbol factor1) {
         String code = "";
 
@@ -1252,6 +1265,67 @@ public class SyntacticAnalyzer {
         term.setAddr(newTemp(factor1.getType()));
 
         code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
+
+        writeCode(code);
+    }
+
+    /**
+     * ExpS -> [+ | -] T1
+     */
+    public void codeGenerationT9(boolean condSoma, boolean condSub, Symbol expS, Symbol term) {
+        String code = "";
+
+        if (condSub) { // necessidade de negar term
+            expS.setAddr(newTemp(term.getType()));
+
+            code = "mov dx, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\n" + 
+            "neg dx\n" + 
+            "add dx, 1\n" +
+            "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], dx\n";
+        } else {
+            expS.setAddr(term.getAddr());
+        }
+
+        writeCode(code);
+    }
+
+    /**
+     * ExpS -> (+ | - | OR) T2
+     */
+    public void codeGenerationT10(boolean condSoma, boolean condSub, Symbol term1, Symbol expS) {
+        String code = "";
+        String label1, label2 = "";
+
+        code =
+        "mov ax, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\n" +
+        "mov bx, DS:[" + String.valueOf(term1.getAddr()&0xFFF) + "h]\n";
+
+        if (condSoma) { // soma
+            code += "add ax, bx\n";
+            expS.setAddr(newTemp(term1.getType()));
+    
+            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+        } else if (condSub) { // subtracao
+            code += "sub ax, bx\n";
+            expS.setAddr(newTemp(term1.getType()));
+    
+            code += "mov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+        } else { // OU logico
+            label1 = newLabel();
+            label2 = newLabel();
+            code +=
+            "add ax, bx\n" +
+            "cmp ax, 0\n" +
+            "jne " + label1 + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + label2 + "\n" +
+            label1 + ":\n" +
+            "mov ax, 1\n" +
+            "jmp " + label2 + "\n";
+            expS.setAddr(newTemp(term1.getType()));
+    
+            code += label2 + ":\nmov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
+        }
 
         writeCode(code);
     }
