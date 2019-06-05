@@ -391,6 +391,7 @@ public class SyntacticAnalyzer {
         Symbol expS = new Symbol(null, "expS");
         procedure_Expression_S(expS);
         semanticActionT9(exp, expS);
+        codeGenerationT11(exp, expS);
         if (token.equals("=") || token.equals("<>") || token.equals("<") || token.equals(">") || token.equals("<=")
                 || token.equals(">=")) {
             Symbol expS1 = new Symbol(null, "expS1");
@@ -425,6 +426,7 @@ public class SyntacticAnalyzer {
                 procedure_Expression_S(expS1);
             }
             semanticActionT15(condEquals, condDiff, condLess, condGreater, condLessEquals, exp, expS);
+            codeGenerationT12(condEquals, condDiff, condLess, condGreater, condLessEquals, exp, expS);
         }
 
     }
@@ -1346,6 +1348,64 @@ public class SyntacticAnalyzer {
             code += label2 + ":\nmov DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h], ax\n";
         }
 
+        writeCode(code);
+    }
+
+    /**
+     * Exp -> ExpS
+     */
+    public void codeGenerationT11(Symbol exp, Symbol expS) {
+        exp.setAddr(expS.getAddr());
+    }
+
+    /**
+     * Exp -> ExpS1
+     */
+    public void codeGenerationT12(boolean condEquals, boolean condDiff, boolean condLess, boolean condGreater, boolean condLessEquals, Symbol exp, Symbol expS) {
+        String code = "";
+        String rotTrue = newLabel();
+        String rotEnd = newLabel();
+
+        code =
+        "mov ax, DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h]\n" +
+        "mov bx, DS:[" + String.valueOf(expS.getAddr()&0xFFF) + "h]\n" +
+        "mov ah, 0\n" +
+        "mov bh, 0\n" +
+        "cmp ax, bx\n";
+
+        if (condEquals) {
+            code += "je " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        } else if (condDiff) {
+            code += "jne " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        } else if (condLess) {
+            code += "jl " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        } else if (condGreater) {
+            code += "jg " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        } else if (condLessEquals) {
+            code += "jle " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        } else { // se for maior ou igual
+            code += "jge " + rotTrue + "\n" +
+            "mov ax, 0\n" +
+            "jmp " + rotEnd + "\n";
+        }
+
+        code += rotTrue + ": mov ax, 1\n" +
+        rotEnd + ":\n";
+
+        exp.setAddr(newTemp("INTEGER"));
+
+        code += "mov DS:[" + String.valueOf(exp.getAddr()&0xFFF) + "h], ax\n";
+        
         writeCode(code);
     }
 }
