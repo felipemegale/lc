@@ -475,6 +475,7 @@ public class SyntacticAnalyzer {
         Symbol factor = new Symbol(null, "factor");
         procedure_Factor(factor);
         semanticActionT11(term, factor);
+        codeGenerationT7(term, factor);
         while (token.equals("*") || token.equals("/") || token.equals("%") || token.equals("and")) {
             if (token.equals("*")) {
                 condMult = true;
@@ -494,6 +495,7 @@ public class SyntacticAnalyzer {
             Symbol factor1 = new Symbol(null, "factor1");
             procedure_Factor(factor1);
             semanticActionT12(condMult, condDiv, condMod, term, factor1);
+            codeGenerationT8(condMult, condDiv, condMod, term, factor1);
         }
     }
 
@@ -537,6 +539,7 @@ public class SyntacticAnalyzer {
                 matchToken("]");
             }
             semanticActionT6(cond, factor, id, exp1);
+            codeGenerationT6(cond, factor, id, exp1);
         }
     }
 
@@ -737,10 +740,10 @@ public class SyntacticAnalyzer {
      * Termo.tipo = Fator.tipo
      */
     public void semanticActionT11(Symbol term, Symbol factor) {
-        log("738:" + term);
+        // log("738:" + term);
         term.setType(factor.getType());
         term.setLexeme(factor.getLexeme());
-        log("741:" + term);
+        // log("741:" + term);
     }
 
     /**
@@ -1143,7 +1146,7 @@ public class SyntacticAnalyzer {
         // se value e' string
         if (value.getType().equals("STRING")) {
             String stringValue = value.getLexeme().substring(0,value.getLexeme().length()-1) + "$\"";
-            log("1127: " + stringValue);
+            // log("1127: " + stringValue);
             code = "dseg segment public\n" +
                 "byte " + stringValue + "\n" +
                 "dseg ENDS\n";
@@ -1185,6 +1188,70 @@ public class SyntacticAnalyzer {
         "neg dx\n" + 
         "add dx, 1\n" +
         "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], dx\n";
+
+        writeCode(code);
+    }
+
+    /**
+     * F -> id [ "["Exp"]" ]
+     */
+    public void codeGenerationT6(boolean condition, Symbol factor, Symbol id, Symbol exp1) {
+        String code = "";
+
+        if (condition) {
+            factor.setAddr(newTemp(id.getType()));
+
+            if (id.getType().equals("INTEGER")) {
+                code =
+                "mov ax, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
+                "add ax, ax\n" +
+                "add ax, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
+                "mov bx, DS:[ax]\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
+            } else if (id.getType().equals("CHAR")) {
+                code =
+                "mov ax, DS:[" + String.valueOf(exp1.getAddr()&0xFFF) + "h]\n" +
+                "add ax, " + String.valueOf(id.getAddr()&0xFFF) + "h\n" +
+                "mov bx, DS:[ax]\n" +
+                "mov DS:[" + String.valueOf(factor.getAddr()&0xFFF) + "h], bx\n";
+            }
+        } else {
+            factor.setAddr(id.getAddr());
+        }
+
+        writeCode(code);
+    }
+
+    /**
+     * Termo -> Fator1
+     */
+    public void codeGenerationT7(Symbol term, Symbol factor) {
+        term.setAddr(factor.getAddr());
+    }
+
+    public void codeGenerationT8(boolean condMult, boolean condDiv, boolean condMod, Symbol term, Symbol factor1) {
+        String code = "";
+
+        code =
+        "mov ax, DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h]\n" +
+        "mov bx, DS:[" + String.valueOf(factor1.getAddr()&0xFFF) + "h]\n";
+
+        if (condMult) { // multiplicacao
+            code += "imul bx\n";
+        } else if (condDiv) { // divisao
+            code += "idiv bx\n";
+        } else if (condMod) { // resto
+            code +=
+            "idiv bx\n" +
+            "mov ax, dx\n";
+         } else { // E logico
+            code += "cmp ax, bx\n" +
+            "mov ax, zf\n";
+        }
+
+        term.setAddr(newTemp(factor1.getType()));
+
+        code += "mov DS:[" + String.valueOf(term.getAddr()&0xFFF) + "h], ax\n";
 
         writeCode(code);
     }
